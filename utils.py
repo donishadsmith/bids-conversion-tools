@@ -158,11 +158,11 @@ def get_n_slices(
         if (not slice_end or np.isnan(slice_end)) and n_slices != slice_end + 1:
             raise IncorrectSliceDimension(slice_dim, n_slices, slice_end)
 
-        slice_dim = slice_dim_map[slice_dim]
+        slice_dim_indx = slice_dim_map[slice_dim]
     else:
-        slice_dim, _ = determine_slice_dim(nifti_header=hdr)
+        slice_dim_indx, _ = determine_slice_dim(nifti_header=hdr)
 
-    return hdr.get_data_shape()[slice_dim_map[slice_dim]]
+    return hdr.get_data_shape()[slice_dim_indx]
 
 
 def get_tr(nifti_file_or_img: Union[str, nib.nifti1.Nifti1Image]) -> float:
