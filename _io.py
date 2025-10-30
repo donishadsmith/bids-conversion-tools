@@ -111,3 +111,122 @@ def get_nifti_affine(nifti_file_or_img):
         The header from a NIfTI image.
     """
     return load_nifti(nifti_file_or_img).affine
+
+
+def rename_file(src_file: str, dst_file: str, remove_src_file: bool) -> None:
+    """
+    Renames a file.
+
+    Parameters
+    ----------
+    src_file: :obj:`str`
+        The source file to be renamed
+
+    dst_file: :obj:`str`
+        The new file name.
+
+    remove_src_file: :obj:`str`
+        Delete the source file if True.
+
+    Returns
+    -------
+    None
+    """
+    os.rename(src_file, dst_file)
+
+    if remove_src_file:
+        os.remove(src_file)
+
+def create_bids_file(
+    nifti_file: str,
+    subj_id: Union[str, int],
+    desc: str,
+    ses_id: Optional[Union[str, int]] = None,
+    task_id: Optional[str] = None,
+    run_id: Optional[Union[str, int]] = None,
+    remove_src_file: bool = False,
+    return_bids_filename: bool = False,
+) -> Union[str, None]:
+    """
+    Create a BIDS compliant filename with required and optional entities.
+
+    Parameters
+    ----------
+    nifti_file: :obj:`str`
+        Path to NIfTI image.
+
+    sub_id: :obj:`str` or :obj:`int`
+        Subject ID (i.e. 01, 101, etc).
+
+    desc: :obj:`str`
+        Description of the file (i.e., T1w, bold, etc).
+
+    ses_id: :obj:`str` or :obj:`int` or :obj:`None`, default=None
+        Session ID (i.e. 001, 1, etc). Optional entity.
+
+    ses_id: :obj:`str` or :obj:`int` or :obj:`None`, default=None
+        Session ID (i.e. 001, 1, etc). Optional entity.
+
+    task_id: :obj:`str` or :obj:`None`, default=None
+        Task ID (i.e. flanker, n_back, etc). Optional entity.
+
+    run_id: :obj:`str` or :obj:`int` or :obj:`None`, default=None
+        Run ID (i.e. 001, 1, etc). Optional entity.
+
+    remove_src_file: :obj:`str`
+        Delete the source file if True.
+
+    return_bids_filename: :obj:`str`
+        Returns the BIDS filename if True.
+
+    Returns
+    -------
+    None or str
+        If ``return_bids_filename`` is True, then the BIDS filename is
+        returned.
+
+    Note
+    ----
+    There are additional entities that can be used that are
+    not included in this function
+    """
+    bids_filename = (
+        f"sub-{subj_id}_ses-{ses_id}_task-{task_id}_" f"run-{run_id}_desc-{desc}"
+    )
+    bids_filename = _strip_none_entities(bids_filename)
+
+    ext = f".{nifti_file.partition('.')[-1]}"
+    bids_filename += f"{ext}"
+
+    rename_file(nifti_file, bids_filename, remove_src_file)
+
+    return bids_filename if return_bids_filename else None
+
+
+def _strip_none_entities(bids_filename: str) -> str:
+    """
+    Removes entities with None in a BIDS compliant filename
+    ("sub-101_ses-None_task-flanker_desc-bold.nii.gz" ->
+     "sub-101_task-flanker_desc-bold.nii.gz")
+    Parameters
+    ----------
+    bids_filename: :obj:`str`
+        The BIDS filename.
+
+    Returns
+    -------
+    str
+        BIDS filename with entities ending in None removed.
+
+    Example
+    -------
+    >>> bids_filename = "sub-101_ses-None_task-flanker_desc-bold.nii.gz"
+    >>> _strip_none_entities(bids_filename)
+        "sub-101_task-flanker_desc-bold.nii.gz"
+    """
+    basename, _, ext = bids_filename.partition(".")
+    retained_entities = [
+        entity for entity in basename.split("_") if not entity.endswith("-None")
+    ]
+
+    return f"{'_'.join(retained_entities)}.{ext}"

@@ -1,54 +1,15 @@
-"""General Utility Functions"""
+"""Utility functions to extract metadata"""
 
 from typing import Any, Literal, Optional, Union
 
 import nibabel as nib, numpy as np
 
+from ._exceptions import IncorrectSliceDimension
 from ._decorators import check_all_none
 from ._io import get_nifti_header
 from ._logging import setup_logger
 
 LGR = setup_logger()
-
-
-class IncorrectSliceDimension(Exception):
-    """
-    Incorrect Slice Dimension.
-
-    Raised when the number of slices does not match "slice_end" plus one.
-
-    Parameters
-    ----------
-    slice_dim: :obj:`Literal["x", "y", "z"]`
-        The specified slice dimension.
-
-    n_slices: :obj:`int`
-        The number of slices from the specified ``slice_dim``.
-
-    slice_end: :obj:`int`
-        The number of slices specified by "slice_end" in the NIfTI header.
-
-    message: :obj:`str` or :obj:`None`:
-        The error message. If None, a default error message is used.
-    """
-
-    def __init__(
-        self,
-        incorrect_slice_dim: Literal["x", "y", "z"],
-        n_slices: int,
-        slice_end: int,
-        message: Optional[str] = None,
-    ):
-        if not message:
-            self.message = (
-                "Incorrect slice dimension. Number of slices for "
-                f"{incorrect_slice_dim} dimension is {n_slices} but "
-                f"'slice_end' in NIfTI header is {slice_end}."
-            )
-        else:
-            self.message = message
-
-        super().__init__(self.message)
 
 
 @check_all_none(parameter_names=["nifti_file_or_img", "nifti_header"])
@@ -153,16 +114,24 @@ def get_n_slices(
 
     hdr = get_nifti_header(nifti_file_or_img)
     if slice_dim:
-        slice_end = get_hdr_metadata(nifti_header=hdr, metadata_name="slice_end")
         n_slices = hdr.get_data_shape()[slice_dim_map[slice_dim]]
-        if (not slice_end or np.isnan(slice_end)) and n_slices != slice_end + 1:
-            raise IncorrectSliceDimension(slice_dim, n_slices, slice_end)
+        if slice_end := get_hdr_metadata(nifti_header=hdr, metadata_name="slice_end"):
+            if not np.isnan(slice_end) and n_slices != slice_end + 1:
+                raise IncorrectSliceDimension(slice_dim, n_slices, slice_end)
 
         slice_dim_indx = slice_dim_map[slice_dim]
     else:
         slice_dim_indx, _ = determine_slice_dim(nifti_header=hdr)
 
-    return hdr.get_data_shape()[slice_dim_indx]
+    reversed_slice_dim_map = {v: k for v, k in slice_dim_map.items()}
+
+    n_slices = hdr.get_data_shape()[slice_dim_indx]
+    LGR.info(
+        f"Number of slices based on "
+        f"{reversed_slice_dim_map.get(slice_dim_indx)}: {n_slices}"
+    )
+
+    return n_slices
 
 
 def get_tr(nifti_file_or_img: Union[str, nib.nifti1.Nifti1Image]) -> float:
@@ -182,7 +151,9 @@ def get_tr(nifti_file_or_img: Union[str, nib.nifti1.Nifti1Image]) -> float:
     hdr = get_nifti_header(nifti_file_or_img)
 
     if not (tr := hdr.get_zooms()[3]):
-        LGR.critical(f"Suspicious repetition time: {tr}.")
+        raise ValueError(f"Suspicious repetition time: {tr}.")
+
+    LGR.info(f"Repetition Time: {tr}.")
 
     return tr
 
@@ -348,5 +319,10 @@ def is_t1w(nifti_file: str) -> bool:
     ----------
     nifti_file: :obj:`str`
         Path to the NIfTI file.
+
+    Returns
+    -------
+    bool
+        True if "mprage" in ``nifti_file``
     """
-    return "mprage" in nifti_file
+    return "mprage" in nifti_file.lower()
