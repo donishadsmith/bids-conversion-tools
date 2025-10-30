@@ -1,6 +1,6 @@
 """Module for input/output operations."""
 
-import glob, os
+import glob, os, shutil
 from typing import Optional, Union
 
 import nibabel as nib
@@ -113,26 +113,26 @@ def get_nifti_affine(nifti_file_or_img):
     return load_nifti(nifti_file_or_img).affine
 
 
-def rename_file(src_file: str, dst_file: str, remove_src_file: bool) -> None:
+def _copy_file(src_file: str, dst_file: str, remove_src_file: bool) -> None:
     """
-    Renames a file.
+    Copies a file.
 
     Parameters
     ----------
     src_file: :obj:`str`
-        The source file to be renamed
+        The source file to be copied
 
     dst_file: :obj:`str`
-        The new file name.
+        The new destination file.
 
-    remove_src_file: :obj:`str`
+    remove_src_file: :obj:`bool`
         Delete the source file if True.
 
     Returns
     -------
     None
     """
-    os.rename(src_file, dst_file)
+    shutil.copy(src_file, dst_file)
 
     if remove_src_file:
         os.remove(src_file)
@@ -198,16 +198,15 @@ def create_bids_file(
     ext = f".{nifti_file.partition('.')[-1]}"
     bids_filename += f"{ext}"
 
-    rename_file(nifti_file, bids_filename, remove_src_file)
+    _copy_file(nifti_file, bids_filename, remove_src_file)
 
     return bids_filename if return_bids_filename else None
 
 
 def _strip_none_entities(bids_filename: str) -> str:
     """
-    Removes entities with None in a BIDS compliant filename
-    ("sub-101_ses-None_task-flanker_desc-bold.nii.gz" ->
-     "sub-101_task-flanker_desc-bold.nii.gz")
+    Removes entities with None in a BIDS compliant filename.
+
     Parameters
     ----------
     bids_filename: :obj:`str`
