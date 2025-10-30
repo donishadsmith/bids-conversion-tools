@@ -40,7 +40,7 @@ def determine_slice_dim(
         hdr = nifti_header
         slice_end = get_hdr_metadata(nifti_header=hdr, metadata_name="slice_end")
 
-    if slice_end or np.isnan(slice_end):
+    if not slice_end or np.isnan(slice_end):
         raise ValueError("'slice_end' metadata field not set.")
 
     slice_end = int(slice_end) + 1

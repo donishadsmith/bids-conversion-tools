@@ -26,9 +26,9 @@ def load_nifti(
         The loaded in NIfTI image.
     """
     nifti_img = (
-        nib.load(nifti_file_or_img)
+        nifti_file_or_img
         if isinstance(nifti_file_or_img, nib.nifti1.Nifti1Image)
-        else nifti_file_or_img
+        else nib.load(nifti_file_or_img)
     )
 
     return nifti_img
