@@ -1,7 +1,7 @@
 """Module for input/output operations."""
 
 import glob, os
-from typing import Union
+from typing import Optional, Union
 
 import nibabel as nib
 
