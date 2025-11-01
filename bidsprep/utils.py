@@ -7,7 +7,7 @@ import nibabel as nib, numpy as np
 from ._exceptions import IncorrectSliceDimension
 from ._decorators import check_all_none
 from .io import get_nifti_header
-from .logging import setup_logger
+from .logger import setup_logger
 
 LGR = setup_logger(__name__)
 
