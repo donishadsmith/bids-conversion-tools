@@ -41,7 +41,8 @@ classifiers = [
 dependencies = [
     "numpy>=1.26.3",
     "nibabel>=5.0.0",
-    "rich>=14.2.0"
+    "rich>=14.2.0",
+    "nilearn>=0.10.4",
     ]
 
 [project.optional-dependencies]
