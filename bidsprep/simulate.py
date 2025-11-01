@@ -17,24 +17,46 @@ def simulate_nifti_image(
         Shape of the NIfTI image.
 
     affine: :obj:`NDArray`, default=None
-        The affine matrix. If None, the default affine matrix
-        has uses "2" for the diagonal values with a translation
-        of ``np.array([-96, -132, -78, 1])``.
+        The affine matrix. If None, creates an identity matrix.
 
     Returns
     -------
     Nifti1Image
-        The NIfTI image.
+        The NIfTI image with no header.
     """
     if not affine:
-        affine = _create_affine(
-            diagonal_value=2, translate_vec=np.array([-96, -132, -78, 1])
+        affine = create_affine(
+            diagonal_value=1, translation_vector=np.array([0, 0, 0, 0])
         )
 
     return nib.Nifti1Image(np.random.rand(*img_shape), affine)
 
 
-def _create_affine(diagonal_value: int, translation_vector: NDArray) -> NDArray:
+def add_nifti_header(nifti_image: nib.Nifti1Image) -> nib.Nifti1Image:
+    """
+    Adds a basic header to a NIfTI image.
+
+    Parameters
+    ----------
+    nifti_image: :obj:`Nifti1Image`
+        A NIfTI image.
+
+    Returns
+    -------
+    Nifti1Image
+        The NIfTI image with a header.
+    """
+    hdr = nib.Nifti1Header()
+    hdr.set_data_shape(nifti_image.shape)
+
+    # Assume isotropic
+    hdr.set_xyzt_units(np.diagonal(nifti_image.affine)[0])
+    hdr.set_data_dtype(nifti_image.get_fdata().dtype)
+
+    return nib.Nifti1Image(nifti_image.get_fdata(), nifti_image.affine, header=hdr)
+
+
+def create_affine(diagonal_value: int, translation_vector: NDArray) -> NDArray:
     """
     Generate an 4x4 affine matrix.
 
