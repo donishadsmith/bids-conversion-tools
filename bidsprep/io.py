@@ -1,13 +1,13 @@
 """Module for input/output operations."""
 
-import glob, os, shutil
-from typing import Optional, Union
+import glob, json, os, shutil
+from typing import Optional
 
 import nibabel as nib
 
 
 def load_nifti(
-    nifti_file_or_img: Union[str, nib.nifti1.Nifti1Image],
+    nifti_file_or_img: str | nib.nifti1.Nifti1Image,
 ) -> nib.nifti1.Nifti1Image:
     """
     Load NIfTI image.
@@ -35,7 +35,7 @@ def load_nifti(
 
 
 def compress_image(
-    nifti_file_or_img: Union[str, nib.nifti1.Nifti1Image], remove_src_file: bool = False
+    nifti_file_or_img: str | nib.nifti1.Nifti1Image, remove_src_file: bool = False
 ) -> None:
     """
     Compresses a ".nii" image to a ".nii.gz" image.
@@ -139,14 +139,14 @@ def _copy_file(src_file: str, dst_file: str, remove_src_file: bool) -> None:
 
 def create_bids_file(
     nifti_file: str,
-    subj_id: Union[str, int],
+    subj_id: str | int,
     desc: str,
-    ses_id: Optional[Union[str, int]] = None,
+    ses_id: Optional[str | int] = None,
     task_id: Optional[str] = None,
-    run_id: Optional[Union[str, int]] = None,
+    run_id: Optional[str | int] = None,
     remove_src_file: bool = False,
     return_bids_filename: bool = False,
-) -> Union[str, None]:
+) -> str | None:
     """
     Create a BIDS compliant filename with required and optional entities.
 
@@ -229,3 +229,52 @@ def _strip_none_entities(bids_filename: str) -> str:
     ]
 
     return f"{'_'.join(retained_entities)}.{ext}"
+
+
+def create_dataset_description(
+    dataset_name: str, bids_version: str = "1.0.0") -> dict:
+    """
+    Generate Dataset Description.
+
+    Creates a dictionary containing the name and BIDs version of a dataset.
+
+    .. versionadded:: 0.34.1
+
+    Parameters
+    ----------
+    dataset_name: :obj:`str`
+        Name of the dataset.
+
+    bids_version: :obj:`str`,
+        Version of the BIDS dataset.
+
+    derivative: :obj:`bool`, default=False
+        Determines if "GeneratedBy" key is added to dictionary.
+
+    Returns
+    -------
+    dict
+        The dataset description dictionary
+    """
+    return {"Name": dataset_name, "BIDSVersion": bids_version}
+
+
+def save_dataset_description(dataset_description: dict[str, str], output_dir: str) -> None:
+    """
+    Save Dataset Description.
+
+    Saves the dataset description dictionary as a file named "dataset_description.json" to the
+    directory specified by ``output_dir``.
+
+    Parameters
+    ----------
+    dataset_description: :obj:`dict`
+        The dataset description dictionary.
+
+    output_dir: :obj:`str`
+        Path to save the JSON file to.
+
+    """
+    with open(os.path.join(output_dir, "dataset_description.json"), "w", encoding="utf-8") as f:
+        json.dump(dataset_description, f)
+

@@ -1,13 +1,13 @@
 """Utility functions to extract metadata"""
 
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Optional
 
 import nibabel as nib, numpy as np
 
 from ._exceptions import IncorrectSliceDimension
 from ._decorators import check_all_none
-from ._io import get_nifti_header
-from ._logging import setup_logger
+from .io import get_nifti_header
+from .logging import setup_logger
 
 LGR = setup_logger()
 
@@ -30,7 +30,7 @@ def determine_slice_dim(
     Returns
     -------
     tuple[int, int]
-        Tuple representing (slice_dim, slice_end)
+        Tuple representing (slice_dim, slice_end).
     """
     if nifti_img:
         slice_end, hdr = get_hdr_metadata(
@@ -51,10 +51,10 @@ def determine_slice_dim(
 @check_all_none(parameter_names=["nifti_file_or_img", "nifti_header"])
 def get_hdr_metadata(
     metadata_name: str,
-    nifti_file_or_img: Optional[Union[str, nib.nifti1.Nifti1Image]] = None,
+    nifti_file_or_img: Optional[str | nib.nifti1.Nifti1Image] = None,
     nifti_header: Optional[nib.nifti1.Nifti1Header] = None,
     return_header: bool = False,
-) -> Union[Any, tuple[Any, nib.nifti1.Nifti1Header]]:
+) -> Any | tuple[Any, nib.nifti1.Nifti1Header]:
     """
     Get metadata from a NIfTI header.
 
@@ -89,7 +89,7 @@ def get_hdr_metadata(
 
 
 def get_n_slices(
-    nifti_file_or_img: Union[str, nib.nifti1.Nifti1Image],
+    nifti_file_or_img: str | nib.nifti1.Nifti1Image,
     slice_dim: Optional[Literal["x", "y", "z"]] = None,
 ) -> int:
     """
@@ -134,7 +134,7 @@ def get_n_slices(
     return n_slices
 
 
-def get_tr(nifti_file_or_img: Union[str, nib.nifti1.Nifti1Image]) -> float:
+def get_tr(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> float:
     """
     Get the Repetition Time from the header of a NIfTI image.
 
@@ -226,7 +226,7 @@ def create_interleaved_order(n_slices: int, ascending: bool = True) -> list[int]
 
 
 def create_slice_timing(
-    nifti_file_or_img: Union[str, nib.nifti1.Nifti1Image],
+    nifti_file_or_img: str | nib.nifti1.Nifti1Image,
     slice_acquisition_method: Literal["sequential", "interleaved"],
     ascending: bool = True,
 ) -> dict[int, float]:
@@ -272,7 +272,7 @@ def get_subject_id(nifti_file: str) -> str:
     nifti_file: :obj:`str`
         Path to the NIfTI file.
     """
-    pass
+    raise NotImplementedError
 
 
 def get_date(nifti_file: str) -> str:
@@ -284,7 +284,7 @@ def get_date(nifti_file: str) -> str:
     nifti_file: :obj:`str`
         Path to the NIfTI file.
     """
-    pass
+    raise NotImplementedError
 
 
 def get_task(nifti_file: str) -> str:
@@ -296,7 +296,7 @@ def get_task(nifti_file: str) -> str:
     nifti_file: :obj:`str`
         Path to the NIfTI file.
     """
-    pass
+    raise NotImplementedError
 
 
 def get_session(nifti_file: str) -> str:
@@ -308,7 +308,7 @@ def get_session(nifti_file: str) -> str:
     nifti_file: :obj:`str`
         Path to the NIfTI file.
     """
-    pass
+    raise NotImplementedError
 
 
 def is_t1w(nifti_file: str) -> bool:
