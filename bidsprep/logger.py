@@ -21,13 +21,13 @@ def setup_logger(logger_name: str = None) -> logging.Logger:
         A logger object.
     """
     logger = logging.getLogger(logger_name)
-    if not has_handler(logger):
-        logger = add_default_handler(logger)
+    if not _has_handler(logger):
+        logger = _add_default_handler(logger)
 
     return logger
 
 
-def has_handler(logger):
+def _has_handler(logger):
     """
     Check if a handler is present.
 
@@ -47,7 +47,7 @@ def has_handler(logger):
     return True if (root_handler or module_handler) else False
 
 
-def add_default_handler(logger: logging.Logger, format: Union[str, None] = None):
+def _add_default_handler(logger: logging.Logger, format: Union[str, None] = None):
     """
     Add a default and format handler. Uses ``RichHandler`` as the default logger.
 

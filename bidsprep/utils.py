@@ -9,7 +9,7 @@ from ._decorators import check_all_none
 from .io import get_nifti_header
 from .logging import setup_logger
 
-LGR = setup_logger()
+LGR = setup_logger(__name__)
 
 
 @check_all_none(parameter_names=["nifti_file_or_img", "nifti_header"])

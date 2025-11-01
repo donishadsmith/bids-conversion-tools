@@ -137,6 +137,7 @@ def _copy_file(src_file: str, dst_file: str, remove_src_file: bool) -> None:
     if remove_src_file:
         os.remove(src_file)
 
+
 def create_bids_file(
     nifti_file: str,
     subj_id: str | int,
@@ -231,8 +232,7 @@ def _strip_none_entities(bids_filename: str) -> str:
     return f"{'_'.join(retained_entities)}.{ext}"
 
 
-def create_dataset_description(
-    dataset_name: str, bids_version: str = "1.0.0") -> dict:
+def create_dataset_description(dataset_name: str, bids_version: str = "1.0.0") -> dict:
     """
     Generate Dataset Description.
 
@@ -259,7 +259,9 @@ def create_dataset_description(
     return {"Name": dataset_name, "BIDSVersion": bids_version}
 
 
-def save_dataset_description(dataset_description: dict[str, str], output_dir: str) -> None:
+def save_dataset_description(
+    dataset_description: dict[str, str], output_dir: str
+) -> None:
     """
     Save Dataset Description.
 
@@ -275,6 +277,7 @@ def save_dataset_description(dataset_description: dict[str, str], output_dir: st
         Path to save the JSON file to.
 
     """
-    with open(os.path.join(output_dir, "dataset_description.json"), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(output_dir, "dataset_description.json"), "w", encoding="utf-8"
+    ) as f:
         json.dump(dataset_description, f)
-

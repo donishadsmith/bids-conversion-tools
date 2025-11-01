@@ -4,7 +4,10 @@ import nibabel as nib, numpy as np
 
 from numpy.typing import NDArray
 
-def simulate_nifti_image(img_shape: tuple[int, int, int, int], affine: NDArray= None) -> nib.Nifti1Image:
+
+def simulate_nifti_image(
+    img_shape: tuple[int, int, int, int], affine: NDArray = None
+) -> nib.Nifti1Image:
     """
     Simulate a NIfTI image.
 
@@ -24,7 +27,9 @@ def simulate_nifti_image(img_shape: tuple[int, int, int, int], affine: NDArray= 
         The NIfTI image.
     """
     if not affine:
-        affine = _create_affine(diagonal_value=2, translate_vec=np.array([-96, -132, -78, 1]))
+        affine = _create_affine(
+            diagonal_value=2, translate_vec=np.array([-96, -132, -78, 1])
+        )
 
     return nib.Nifti1Image(np.random.rand(*img_shape), affine)
 
@@ -32,7 +37,7 @@ def simulate_nifti_image(img_shape: tuple[int, int, int, int], affine: NDArray= 
 def _create_affine(diagonal_value: int, translation_vector: NDArray) -> NDArray:
     """
     Generate an 4x4 affine matrix.
-    
+
     Parameters
     ----------
     diagonal_value: :obj:`int`
