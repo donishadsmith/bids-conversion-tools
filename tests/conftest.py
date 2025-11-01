@@ -1,0 +1,12 @@
+import tempfile
+import pytest
+
+
+@pytest.fixture(autouse=False, scope="function")
+def tmp_dir():
+    """Create temporary directory for each test module."""
+    temp_dir = tempfile.TemporaryDirectory()
+
+    yield temp_dir
+
+    temp_dir.cleanup()

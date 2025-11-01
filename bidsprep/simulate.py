@@ -24,9 +24,9 @@ def simulate_nifti_image(
     Nifti1Image
         The NIfTI image with no header.
     """
-    if not affine:
+    if affine is None:
         affine = create_affine(
-            diagonal_value=1, translation_vector=np.array([0, 0, 0, 0])
+            xyz_diagonal_value=1, translation_vector=np.array([0, 0, 0, 1])
         )
 
     return nib.Nifti1Image(np.random.rand(*img_shape), affine)
@@ -48,22 +48,20 @@ def add_nifti_header(nifti_image: nib.Nifti1Image) -> nib.Nifti1Image:
     """
     hdr = nib.Nifti1Header()
     hdr.set_data_shape(nifti_image.shape)
-
-    # Assume isotropic
-    hdr.set_xyzt_units(np.diagonal(nifti_image.affine)[0])
+    hdr.set_zooms((*np.diagonal(nifti_image.affine[:3]), 0))
     hdr.set_data_dtype(nifti_image.get_fdata().dtype)
 
     return nib.Nifti1Image(nifti_image.get_fdata(), nifti_image.affine, header=hdr)
 
 
-def create_affine(diagonal_value: int, translation_vector: NDArray) -> NDArray:
+def create_affine(xyz_diagonal_value: int, translation_vector: NDArray) -> NDArray:
     """
     Generate an 4x4 affine matrix.
 
     Parameters
     ----------
-    diagonal_value: :obj:`int`
-        The value assigned to the diagonal of the affine.
+    xyz_diagonal_value: :obj:`int`
+        The value assigned to the diagonal of the affine for x, y, and z.
 
     translation_vector: :obj:`NDArray`
         The translation vector/shift from the origin.
@@ -74,7 +72,7 @@ def create_affine(diagonal_value: int, translation_vector: NDArray) -> NDArray:
         The affine matrix.
     """
     affine = np.zeros((4, 4))
-    np.fill_diagonal(affine[:3], diagonal_value)
+    np.fill_diagonal(affine[:3, :3], xyz_diagonal_value)
     affine[:, 3:] = translation_vector[:, np.newaxis]
 
     return affine
