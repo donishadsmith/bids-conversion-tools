@@ -10,7 +10,7 @@ name = "bidsprep"
 dynamic = ["version"]
 license = "MIT"
 authors = [{name = "Donisha Smith", email = "dsmit420@jhu.edu"}]
-description = "Toolkit for making MRI data BIDS compatible"
+description = "Toolkit for making MRI data BIDS compatible."
 readme = "README.md"
 requires-python = ">=3.10.0"
 

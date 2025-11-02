@@ -275,7 +275,7 @@ def get_subject_id(nifti_file: str) -> str:
     raise NotImplementedError
 
 
-def get_date(nifti_file: str) -> str:
+def get_acquisition_data(nifti_file: str) -> str:
     """
     Determines the date from a ``nifti_file``.
 
