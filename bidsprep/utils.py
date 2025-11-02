@@ -202,7 +202,11 @@ def create_sequential_order(n_slices: int, ascending: bool = True) -> list[int]:
     return flip_slice_order(slice_order, ascending)
 
 
-def create_interleaved_order(n_slices: int, ascending: bool = True) -> list[int]:
+def create_interleaved_order(
+    n_slices: int,
+    ascending: bool = True,
+    interleaved_order: Literal["even_first", "odd_first"] = "odd_first",
+) -> list[int]:
     """
     Create index ordering for interleaved acquisition method.
 
@@ -215,12 +219,19 @@ def create_interleaved_order(n_slices: int, ascending: bool = True) -> list[int]
         If slices were collected in ascending order (True) or descending
         order (False).
 
+    interleaved_order: :obj:`Literal["even_first", "odd_first"]`, default="odd_first"
+        If slices for interleaved acquisition were collected
+        by acquiring the "even_first" or "odd_first" slices first.
+
     Returns
     -------
     list[int]
         The order of the slices.
     """
-    slice_order = list(range(0, n_slices, 2)) + list(range(1, n_slices, 2))
+    if interleaved_order == "odd_first":
+        slice_order = list(range(0, n_slices, 2)) + list(range(1, n_slices, 2))
+    else:
+        slice_order = list(range(1, n_slices, 2)) + list(range(0, n_slices, 2))
 
     return flip_slice_order(slice_order, ascending)
 
@@ -229,6 +240,7 @@ def create_slice_timing(
     nifti_file_or_img: str | nib.nifti1.Nifti1Image,
     slice_acquisition_method: Literal["sequential", "interleaved"],
     ascending: bool = True,
+    interleaved_order: Literal["even_first", "odd_first"] = "odd_first",
 ) -> dict[int, float]:
     """
     Parameters
@@ -242,6 +254,10 @@ def create_slice_timing(
     ascending: :obj:`bool`, default=True
         If slices were collected in ascending order (True) or descending
         order (False).
+
+    interleaved_order: :obj:`Literal["even_first", "odd_first"]`, default="odd_first"
+        If slices for interleaved acquisition were collected
+        by acquiring the "even_first" or "odd_first" slices first.
 
     Returns
     -------
@@ -257,72 +273,64 @@ def create_slice_timing(
     n_slices = get_n_slices(nifti_file_or_img)
 
     slice_duration = tr / n_slices
-    slice_order = slice_ordering_func[slice_acquisition_method](n_slices, ascending)
+    kwargs = {"n_slices": n_slices, "ascending": ascending}
+    kwargs = (
+        kwargs.update({"interleaved_order": interleaved_order})
+        if slice_acquisition_method == "interleaved"
+        else kwargs
+    )
+    slice_order = slice_ordering_func[slice_acquisition_method](**kwargs)
     slice_timing = np.linspace(0, tr - slice_duration, n_slices)[slice_order]
 
     return {k: v for k, v in zip(range(0, n_slices), slice_timing.tolist())}
 
 
-def get_subject_id(nifti_file: str) -> str:
+def is_3d_img(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> bool:
     """
-    Determines the subject ID from a ``nifti_file``.
+    Determines if ``nifti_file_or_img`` is a 3D image.
 
     Parameters
     ----------
-    nifti_file: :obj:`str`
-        Path to the NIfTI file.
-    """
-    raise NotImplementedError
-
-
-def get_acquisition_data(nifti_file: str) -> str:
-    """
-    Determines the date from a ``nifti_file``.
-
-    Parameters
-    ----------
-    nifti_file: :obj:`str`
-        Path to the NIfTI file.
-    """
-    raise NotImplementedError
-
-
-def get_task(nifti_file: str) -> str:
-    """
-    Determines the task from a ``nifti_file``.
-
-    Parameters
-    ----------
-    nifti_file: :obj:`str`
-        Path to the NIfTI file.
-    """
-    raise NotImplementedError
-
-
-def get_session(nifti_file: str) -> str:
-    """
-    Determines the session from a ``nifti_file``.
-
-    Parameters
-    ----------
-    nifti_file: :obj:`str`
-        Path to the NIfTI file.
-    """
-    raise NotImplementedError
-
-
-def is_t1w(nifti_file: str) -> bool:
-    """
-    Determines if ``nifti_file`` is a T1w image.
-
-    Parameters
-    ----------
-    nifti_file: :obj:`str`
-        Path to the NIfTI file.
+    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
+        Path to the NIfTI file or a NIfTI image.
 
     Returns
     -------
     bool
-        True if "mprage" in ``nifti_file``
+        True if ``nifti_file_or_img`` is a 3D image.
     """
-    return "mprage" in nifti_file.lower()
+    return len(get_nifti_header(nifti_file_or_img).get_zooms()) == 3
+
+
+def get_scanner_info(
+    nifti_file_or_img: str | nib.nifti1.Nifti1Image,
+) -> tuple[str, str]:
+    """
+    Determines the manufacturer and model namne of scanner.
+
+    .. important::
+        Assumes this information is in the "descrip" of the NIfTI
+        header, which can contain any information.
+
+
+    Parameters
+    ----------
+    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
+        Path to the NIfTI file or a NIfTI image.
+
+    Returns
+    -------
+    tuple[str, str]
+        The manufacturer and model name for the scanner.
+    """
+    if not (
+        scanner_info := get_hdr_metadata(
+            nifti_file_or_img=nifti_file_or_img, metadata_name="decrip"
+        )
+    ):
+        raise ValueError("No scanner information in NIfTI header.")
+
+    scanner_info = str(scanner_info.astype(str)).rstrip(" ")
+    manufacturer_name, _, model_name = scanner_info.partition(" ")
+
+    return manufacturer_name, model_name

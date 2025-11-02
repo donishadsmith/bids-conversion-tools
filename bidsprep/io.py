@@ -34,16 +34,14 @@ def load_nifti(
     return nifti_img
 
 
-def compress_image(
-    nifti_file_or_img: str | nib.nifti1.Nifti1Image, remove_src_file: bool = False
-) -> None:
+def compress_image(nifti_file: str, remove_src_file: bool = False) -> None:
     """
     Compresses a ".nii" image to a ".nii.gz" image.
 
     Parameters
     ----------
     nifti_file: :obj:`str`
-        Path of the NIfTI image.
+        Path to the NIfTI image.
 
     remove_src_file: :obj:`bool`
         Deletes the original source image file.
@@ -52,11 +50,11 @@ def compress_image(
     -------
     None
     """
-    img = nib.load(nifti_file_or_img)
-    nib.save(img, nifti_file_or_img.replace(".nii", ".nii.gz"))
+    img = nib.load(nifti_file)
+    nib.save(img, nifti_file.replace(".nii", ".nii.gz"))
 
-    if remove_src_file and isinstance(nifti_file_or_img, (str,)):
-        os.remove(nifti_file_or_img)
+    if remove_src_file and isinstance(nifti_file, (str,)):
+        os.remove(nifti_file)
 
 
 def get_files(target_dir: str, ext: str) -> list[str]:
@@ -76,7 +74,7 @@ def get_files(target_dir: str, ext: str) -> list[str]:
     list[str]
         List of files with the extension specified by ``ext``.
     """
-    return glob.glob(os.path.join(target_dir, f"*.{ext}"))
+    return glob.glob(os.path.join(target_dir, f"*{ext}"))
 
 
 def get_nifti_header(nifti_file_or_img):
@@ -145,6 +143,7 @@ def create_bids_file(
     ses_id: Optional[str | int] = None,
     task_id: Optional[str] = None,
     run_id: Optional[str | int] = None,
+    destination_dir: str = None,
     remove_src_file: bool = False,
     return_bids_filename: bool = False,
 ) -> str | None:
@@ -174,11 +173,15 @@ def create_bids_file(
     run_id: :obj:`str` or :obj:`int` or :obj:`None`, default=None
         Run ID (i.e. 001, 1, etc). Optional entity.
 
-    remove_src_file: :obj:`str`
+    destination_dir: :obj:`str`, default=None
+        Directory name to copy the BIDS file to. If None, then the
+        BIDS file is copied to the same directory as
+
+    remove_src_file: :obj:`str`, default=False
         Delete the source file if True.
 
-    return_bids_filename: :obj:`str`
-        Returns the BIDS filename if True.
+    return_bids_filename: :obj:`str`, default=False
+        Returns the full BIDS filename if True.
 
     Returns
     -------
@@ -196,8 +199,13 @@ def create_bids_file(
     )
     bids_filename = _strip_none_entities(bids_filename)
 
-    ext = f".{nifti_file.partition('.')[-1]}"
+    ext = f"{nifti_file.partition('.')[-1]}"
     bids_filename += f"{ext}"
+    bids_filename = (
+        os.path.join(os.path.dirname(nifti_file), bids_filename)
+        if destination_dir is None
+        else os.path.join(destination_dir, bids_filename)
+    )
 
     _copy_file(nifti_file, bids_filename, remove_src_file)
 

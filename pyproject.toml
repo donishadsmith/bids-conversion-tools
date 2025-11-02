@@ -64,6 +64,9 @@ source = ["bidsprep"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 
+[tool.black]
+line-length = 88
+
 [project.urls]
 Github = "https://github.com/donishadsmith/bidsprep"
 Issues = "https://github.com/donishadsmith/bidsprep/issues"
