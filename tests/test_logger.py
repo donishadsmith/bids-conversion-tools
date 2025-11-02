@@ -17,5 +17,11 @@ def test_setup_logger(caplog):
 
     # Root has handler in pytest env
     logger.handlers.clear()
+    logger = setup_logger("test")
     logger = _add_default_handler(logger)
+    assert isinstance(logger.handlers[0], rich.logging.RichHandler)
+
+    # Clear root handler
+    logging.getLogger().handlers.clear()
+    logger = setup_logger("test2")
     assert isinstance(logger.handlers[0], rich.logging.RichHandler)
