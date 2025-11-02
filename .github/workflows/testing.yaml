@@ -39,7 +39,7 @@ jobs:
         run: pytest --cov bidsprep
 
       - name: Run test without coverage for Ubuntu from Python >= 3.10
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-ver != '3.12' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-ver != '3.10' }}
         run: pytest .
 
       - name: Run test without coverage for Windows and Mac
@@ -47,7 +47,7 @@ jobs:
         run: pytest .
 
       - name: Upload coverage reports to Codecov for Ubuntu
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-ver == '3.12' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-ver == '3.10' }}
         uses: codecov/codecov-action@v5.5.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
