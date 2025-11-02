@@ -41,10 +41,10 @@ def _has_handler(logger):
     bool
         True if a handler is present and False if no handler is present
     """
-    root_handler = logging.getLogger().hasHandlers()
-    module_handler = logger.handlers
+    has_root_handler = logging.getLogger().hasHandlers()
+    has_module_handler = bool(logger.handlers)
 
-    return True if (root_handler or module_handler) else False
+    return True if (has_root_handler or has_module_handler) else False
 
 
 def _add_default_handler(logger: logging.Logger, format: Union[str, None] = None):

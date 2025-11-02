@@ -1,6 +1,8 @@
 import logging
 
-from bidsprep.logger import setup_logger
+import rich
+
+from bidsprep.logger import setup_logger, _add_default_handler
 
 
 def test_setup_logger(caplog):
@@ -12,3 +14,8 @@ def test_setup_logger(caplog):
         logger.info("TEST")
 
     assert "TEST" in caplog.text
+
+    # Root has handler in pytest env
+    logger.handlers.clear()
+    logger = _add_default_handler(logger)
+    assert isinstance(logger.handlers[0], rich.logging.RichHandler)
