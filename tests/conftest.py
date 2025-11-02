@@ -1,5 +1,7 @@
-import tempfile
-import pytest
+import os, tempfile
+import nibabel as nib, pytest
+
+from bidsprep.simulate import simulate_nifti_image
 
 
 @pytest.fixture(autouse=False, scope="function")
@@ -10,3 +12,12 @@ def tmp_dir():
     yield temp_dir
 
     temp_dir.cleanup()
+
+
+@pytest.fixture(autouse=False, scope="function")
+def nifti_img_and_path(tmp_dir):
+    img = simulate_nifti_image((20, 20, 10, 5))
+    img_path = os.path.join(tmp_dir.name, "img.nii")
+    nib.save(img, img_path)
+
+    yield img, img_path

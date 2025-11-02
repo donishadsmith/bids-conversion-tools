@@ -1,17 +1,6 @@
 import glob, os
 import nibabel as nib, pytest
-
 import bidsprep.io as bids_io
-from bidsprep.simulate import simulate_nifti_image
-
-
-@pytest.fixture(autouse=False, scope="function")
-def nifti_img_and_path(tmp_dir):
-    img = simulate_nifti_image((20, 20, 20, 10))
-    img_path = os.path.join(tmp_dir.name, "img.nii")
-    nib.save(img, img_path)
-
-    yield img, img_path
 
 
 def test_compress_image(nifti_img_and_path):

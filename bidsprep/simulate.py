@@ -6,14 +6,14 @@ from numpy.typing import NDArray
 
 
 def simulate_nifti_image(
-    img_shape: tuple[int, int, int, int], affine: NDArray = None
+    img_shape: tuple[int, int, int] | tuple[int, int, int, int], affine: NDArray = None
 ) -> nib.Nifti1Image:
     """
     Simulate a NIfTI image.
 
     Parameters
     ----------
-    img_shape: :obj:`tuple[int, int, int, int]`
+    img_shape: :obj:`tuple[int, int, int]` or :obj:`tuple[int, int, int, int]`
         Shape of the NIfTI image.
 
     affine: :obj:`NDArray`, default=None

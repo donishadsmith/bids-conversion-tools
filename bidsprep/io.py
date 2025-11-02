@@ -53,7 +53,7 @@ def compress_image(nifti_file: str, remove_src_file: bool = False) -> None:
     img = nib.load(nifti_file)
     nib.save(img, nifti_file.replace(".nii", ".nii.gz"))
 
-    if remove_src_file and isinstance(nifti_file, (str,)):
+    if remove_src_file:
         os.remove(nifti_file)
 
 

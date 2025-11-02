@@ -14,9 +14,9 @@ LGR = setup_logger(__name__)
 
 @check_all_none(parameter_names=["nifti_file_or_img", "nifti_header"])
 def determine_slice_dim(
-    nifti_img: Optional[nib.nifti1.Nifti1Image] = None,
+    nifti_file_or_img: Optional[str | nib.nifti1.Nifti1Image] = None,
     nifti_header: Optional[nib.nifti1.Nifti1Header] = None,
-) -> tuple[int, int]:
+) -> int:
     """
     Determine the slice dimension
 
@@ -24,28 +24,30 @@ def determine_slice_dim(
 
     Parameters
     ----------
-    nifti_img: :obj:`Nifti1Image`
-        A NIfTI image.
+    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`, default=None
+        Path to the NIfTI file or a NIfTI image. Must be specified
+        if ``nifti_header`` is None.
+
+    nifti_header: :obj:`Nifti1Header`, default=None
+        Path to the NIfTI file or a NIfTI image. Must be specified
+        if ``nifti_file_or_img`` is None.
 
     Returns
     -------
-    tuple[int, int]
-        Tuple representing (slice_dim, slice_end).
+    int
+        A number representing the slice dimension.
     """
-    if nifti_img:
-        slice_end, hdr = get_hdr_metadata(
-            nifti_file_or_img=nifti_img, metadata_name="slice_end", return_header=True
-        )
-    else:
-        hdr = nifti_header
-        slice_end = get_hdr_metadata(nifti_header=hdr, metadata_name="slice_end")
-
+    kwargs = {"nifti_file_or_img": nifti_file_or_img, "nifti_header": nifti_header}
+    slice_end, hdr = get_hdr_metadata(
+        **kwargs, metadata_name="slice_end", return_header=True
+    )
     if not slice_end or np.isnan(slice_end):
         raise ValueError("'slice_end' metadata field not set.")
 
-    slice_end = int(slice_end) + 1
+    n_slices = int(slice_end) + 1
+    dims = np.array(hdr.get_data_shape()[:3])
 
-    return np.where(hdr.get_data_shape() == slice_end)
+    return np.where(dims == n_slices)[0][0]
 
 
 @check_all_none(parameter_names=["nifti_file_or_img", "nifti_header"])
@@ -121,7 +123,7 @@ def get_n_slices(
 
         slice_dim_indx = slice_dim_map[slice_dim]
     else:
-        slice_dim_indx, _ = determine_slice_dim(nifti_header=hdr)
+        slice_dim_indx = determine_slice_dim(nifti_header=hdr)
 
     reversed_slice_dim_map = {v: k for v, k in slice_dim_map.items()}
 
@@ -274,15 +276,17 @@ def create_slice_timing(
 
     slice_duration = tr / n_slices
     kwargs = {"n_slices": n_slices, "ascending": ascending}
-    kwargs = (
-        kwargs.update({"interleaved_order": interleaved_order})
-        if slice_acquisition_method == "interleaved"
-        else kwargs
-    )
-    slice_order = slice_ordering_func[slice_acquisition_method](**kwargs)
-    slice_timing = np.linspace(0, tr - slice_duration, n_slices)[slice_order]
 
-    return {k: v for k, v in zip(range(0, n_slices), slice_timing.tolist())}
+    if slice_acquisition_method == "interleaved":
+        kwargs.update({"interleaved_order": interleaved_order})
+
+    slice_order = slice_ordering_func[slice_acquisition_method](**kwargs)
+    slice_timing = np.linspace(0, tr - slice_duration, n_slices)
+
+    # Pair slice with timing then sort dict
+    return dict(
+        sorted({k: v for k, v in zip(slice_order, slice_timing.tolist())}.items())
+    )
 
 
 def is_3d_img(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> bool:
@@ -325,7 +329,9 @@ def get_scanner_info(
     """
     if not (
         scanner_info := get_hdr_metadata(
-            nifti_file_or_img=nifti_file_or_img, metadata_name="decrip"
+            nifti_file_or_img=nifti_file_or_img,
+            metadata_name="descrip",
+            return_header=False,
         )
     ):
         raise ValueError("No scanner information in NIfTI header.")
