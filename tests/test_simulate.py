@@ -1,6 +1,6 @@
 import nibabel as nib, numpy as np, pytest
 
-from bidsprep.simulate import create_affine, simulate_nifti_image, add_nifti_header
+from bidsprep.simulate import create_affine, simulate_nifti_image
 
 
 def test_create_affine():
@@ -25,14 +25,3 @@ def test_simulate_nifti_image(affine):
     assert isinstance(img, nib.Nifti1Image)
     if affine is not None:
         assert all(np.diagonal(img.affine) == np.array([1, 1, 1, 1]))
-
-
-def test_add_nifti_header():
-    """Test for ``add_nifti_header``."""
-    affine = create_affine(
-        xyz_diagonal_value=3, translation_vector=np.array([1, 1, 1, 1])
-    )
-    img = simulate_nifti_image(img_shape=(20, 20, 20, 20), affine=affine)
-    img = add_nifti_header(img)
-    assert isinstance(img, nib.Nifti1Image)
-    assert all(np.array(img.header.get_zooms()) == np.array([3, 3, 3, 0]))

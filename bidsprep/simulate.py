@@ -32,28 +32,6 @@ def simulate_nifti_image(
     return nib.Nifti1Image(np.random.rand(*img_shape), affine)
 
 
-def add_nifti_header(nifti_image: nib.Nifti1Image) -> nib.Nifti1Image:
-    """
-    Adds a basic header to a NIfTI image.
-
-    Parameters
-    ----------
-    nifti_image: :obj:`Nifti1Image`
-        A NIfTI image.
-
-    Returns
-    -------
-    Nifti1Image
-        The NIfTI image with a header.
-    """
-    hdr = nib.Nifti1Header()
-    hdr.set_data_shape(nifti_image.shape)
-    hdr.set_zooms((*np.diagonal(nifti_image.affine[:3]), 0))
-    hdr.set_data_dtype(nifti_image.get_fdata().dtype)
-
-    return nib.Nifti1Image(nifti_image.get_fdata(), nifti_image.affine, header=hdr)
-
-
 def create_affine(xyz_diagonal_value: int, translation_vector: NDArray) -> NDArray:
     """
     Generate an 4x4 affine matrix.
