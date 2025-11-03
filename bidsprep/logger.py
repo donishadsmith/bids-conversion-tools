@@ -8,7 +8,11 @@ from rich.logging import RichHandler
 
 def setup_logger(logger_name: str = None) -> logging.Logger:
     """
-    Setup the logger.
+    Sets up the logger.
+
+    .. note::
+       Defaults to ``RichHandler`` if a module or root handler is
+       not detected.
 
     Parameters
     ----------
@@ -18,7 +22,7 @@ def setup_logger(logger_name: str = None) -> logging.Logger:
     Returns
     -------
     Logger
-        A logger object.
+        A ``Logger`` object.
     """
     logger = logging.getLogger(logger_name)
     if not _has_handler(logger):

@@ -9,7 +9,7 @@ def simulate_nifti_image(
     img_shape: tuple[int, int, int] | tuple[int, int, int, int], affine: NDArray = None
 ) -> nib.Nifti1Image:
     """
-    Simulate a NIfTI image.
+    Simulates a NIfTI image.
 
     Parameters
     ----------
@@ -17,7 +17,10 @@ def simulate_nifti_image(
         Shape of the NIfTI image.
 
     affine: :obj:`NDArray`, default=None
-        The affine matrix. If None, creates an identity matrix.
+        The affine matrix.
+
+        .. important::
+           If None, creates an identity matrix.
 
     Returns
     -------

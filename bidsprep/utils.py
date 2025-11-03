@@ -1,4 +1,4 @@
-"""Utility functions to extract metadata"""
+"""Utility functions to extract metadata."""
 
 from typing import Any, Literal, Optional
 
@@ -18,7 +18,7 @@ def determine_slice_dim(
     nifti_header: Optional[nib.nifti1.Nifti1Header] = None,
 ) -> int:
     """
-    Determine the slice dimension
+    Determine the slice dimension.
 
     Uses "slice_end" plus one to determine the likely slice dimension.
 
@@ -138,7 +138,7 @@ def get_n_slices(
 
 def get_tr(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> float:
     """
-    Get the Repetition Time from the header of a NIfTI image.
+    Get the repetition time from the header of a NIfTI image.
 
     Parameters
     ----------
@@ -162,7 +162,7 @@ def get_tr(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> float:
 
 def _flip_slice_order(slice_order, ascending: bool) -> list[int]:
     """
-    Flip slice order.
+    Flip slice index order.
 
     Parameters
     ----------
@@ -245,7 +245,8 @@ def create_slice_timing(
     interleaved_order: Literal["even_first", "odd_first"] = "odd_first",
 ) -> dict[int, float]:
     """
-    Create Slice Timing Dictionary.
+    Create slice timing dictionary mapping the slice index to its
+    acquisition time.
 
     Parameters
     ----------
@@ -312,7 +313,7 @@ def get_scanner_info(
     nifti_file_or_img: str | nib.nifti1.Nifti1Image,
 ) -> tuple[str, str]:
     """
-    Determines the manufacturer and model namne of scanner.
+    Determines the manufacturer and model name of scanner.
 
     .. important::
         Assumes this information is in the "descrip" of the NIfTI

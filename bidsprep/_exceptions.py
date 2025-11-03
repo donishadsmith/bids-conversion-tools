@@ -1,11 +1,11 @@
-"""Custom exceptions"""
+"""Custom exceptions."""
 
 from typing import Literal, Optional
 
 
 class IncorrectSliceDimension(Exception):
     """
-    Incorrect Slice Dimension.
+    Incorrect slice dimension.
 
     Raised when the number of slices does not match "slice_end" plus one.
 

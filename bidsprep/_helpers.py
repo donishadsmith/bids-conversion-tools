@@ -1,4 +1,4 @@
-"""Helper functions"""
+"""Helper functions."""
 
 
 def list_to_str(str_list: list[str]) -> None:

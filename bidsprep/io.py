@@ -10,7 +10,7 @@ def load_nifti(
     nifti_file_or_img: str | nib.nifti1.Nifti1Image,
 ) -> nib.nifti1.Nifti1Image:
     """
-    Load NIfTI image.
+    Loads a NIfTI image.
 
     Loads NIfTI image when not a ``Nifti1Image`` object or
     returns the image if already loaded in.
@@ -79,7 +79,7 @@ def get_files(target_dir: str, ext: str) -> list[str]:
 
 def get_nifti_header(nifti_file_or_img):
     """
-    Get header from NIfTI image.
+    Get header from a NIfTI image.
 
     Parameters
     ----------
@@ -96,7 +96,7 @@ def get_nifti_header(nifti_file_or_img):
 
 def get_nifti_affine(nifti_file_or_img):
     """
-    Get the affine matrix from NIfTI image.
+    Get the affine matrix from a NIfTI image.
 
     Parameters
     ----------
@@ -113,7 +113,7 @@ def get_nifti_affine(nifti_file_or_img):
 
 def _copy_file(src_file: str, dst_file: str, remove_src_file: bool) -> None:
     """
-    Copies a file.
+    Copy a file and optionally remove the source file.
 
     Parameters
     ----------
@@ -242,7 +242,7 @@ def _strip_none_entities(bids_filename: str) -> str:
 
 def create_dataset_description(dataset_name: str, bids_version: str = "1.0.0") -> dict:
     """
-    Generate Dataset Description.
+    Generate a dataset description dictionary.
 
     Creates a dictionary containing the name and BIDs version of a dataset.
 
@@ -271,7 +271,7 @@ def save_dataset_description(
     dataset_description: dict[str, str], output_dir: str
 ) -> None:
     """
-    Save Dataset Description.
+    Save a dataset description dictionary.
 
     Saves the dataset description dictionary as a file named "dataset_description.json" to the
     directory specified by ``output_dir``.

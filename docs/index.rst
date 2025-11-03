@@ -6,3 +6,4 @@
 
    introduction
    api
+   changelog
