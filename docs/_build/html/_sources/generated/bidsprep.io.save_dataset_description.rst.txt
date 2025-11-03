@@ -1,0 +1,10 @@
+﻿save_dataset_description
+========================================================
+
+.. currentmodule:: bidsprep.io
+
+.. autofunction:: save_dataset_description
+
+.. raw:: html
+
+    <div class='clearer'></div>

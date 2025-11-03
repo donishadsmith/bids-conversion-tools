@@ -68,6 +68,7 @@ python_files = ["test_*.py"]
 line-length = 88
 
 [project.urls]
+Homepage = "https://bidsprep-py.readthedocs.io"
 Github = "https://github.com/donishadsmith/bidsprep"
 Issues = "https://github.com/donishadsmith/bidsprep/issues"
 

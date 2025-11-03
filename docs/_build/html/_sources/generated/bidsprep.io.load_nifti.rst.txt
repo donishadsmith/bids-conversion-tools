@@ -1,0 +1,10 @@
+﻿load_nifti
+==========================================
+
+.. currentmodule:: bidsprep.io
+
+.. autofunction:: load_nifti
+
+.. raw:: html
+
+    <div class='clearer'></div>

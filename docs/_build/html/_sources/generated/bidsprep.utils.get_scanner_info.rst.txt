@@ -1,0 +1,10 @@
+﻿get_scanner_info
+===================================================
+
+.. currentmodule:: bidsprep.utils
+
+.. autofunction:: get_scanner_info
+
+.. raw:: html
+
+    <div class='clearer'></div>

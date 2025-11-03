@@ -160,7 +160,7 @@ def get_tr(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> float:
     return tr
 
 
-def flip_slice_order(slice_order, ascending: bool) -> list[int]:
+def _flip_slice_order(slice_order, ascending: bool) -> list[int]:
     """
     Flip slice order.
 
@@ -181,7 +181,7 @@ def flip_slice_order(slice_order, ascending: bool) -> list[int]:
     return np.flip(slice_order) if not ascending else slice_order
 
 
-def create_sequential_order(n_slices: int, ascending: bool = True) -> list[int]:
+def _create_sequential_order(n_slices: int, ascending: bool = True) -> list[int]:
     """
     Create index ordering for sequential acquisition method.
 
@@ -201,10 +201,10 @@ def create_sequential_order(n_slices: int, ascending: bool = True) -> list[int]:
     """
     slice_order = list(range(0, n_slices))
 
-    return flip_slice_order(slice_order, ascending)
+    return _flip_slice_order(slice_order, ascending)
 
 
-def create_interleaved_order(
+def _create_interleaved_order(
     n_slices: int,
     ascending: bool = True,
     interleaved_order: Literal["even_first", "odd_first"] = "odd_first",
@@ -235,7 +235,7 @@ def create_interleaved_order(
     else:
         slice_order = list(range(1, n_slices, 2)) + list(range(0, n_slices, 2))
 
-    return flip_slice_order(slice_order, ascending)
+    return _flip_slice_order(slice_order, ascending)
 
 
 def create_slice_timing(
@@ -245,6 +245,8 @@ def create_slice_timing(
     interleaved_order: Literal["even_first", "odd_first"] = "odd_first",
 ) -> dict[int, float]:
     """
+    Create Slice Timing Dictionary.
+
     Parameters
     ----------
     nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
@@ -267,8 +269,8 @@ def create_slice_timing(
         Dictionary mapping the slice number to the time the slice was aquired.
     """
     slice_ordering_func = {
-        "sequential": create_sequential_order,
-        "interleaved": create_interleaved_order,
+        "sequential": _create_sequential_order,
+        "interleaved": _create_interleaved_order,
     }
 
     tr = get_tr(nifti_file_or_img)

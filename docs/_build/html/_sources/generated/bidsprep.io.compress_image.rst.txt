@@ -1,0 +1,10 @@
+﻿compress_image
+==============================================
+
+.. currentmodule:: bidsprep.io
+
+.. autofunction:: compress_image
+
+.. raw:: html
+
+    <div class='clearer'></div>

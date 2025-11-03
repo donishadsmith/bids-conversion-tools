@@ -1,0 +1,10 @@
+﻿create_bids_file
+================================================
+
+.. currentmodule:: bidsprep.io
+
+.. autofunction:: create_bids_file
+
+.. raw:: html
+
+    <div class='clearer'></div>

@@ -1,0 +1,10 @@
+﻿get_files
+=========================================
+
+.. currentmodule:: bidsprep.io
+
+.. autofunction:: get_files
+
+.. raw:: html
+
+    <div class='clearer'></div>

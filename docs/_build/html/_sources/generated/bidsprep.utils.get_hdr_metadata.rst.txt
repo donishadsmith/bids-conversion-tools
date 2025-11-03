@@ -1,0 +1,10 @@
+﻿get_hdr_metadata
+===================================================
+
+.. currentmodule:: bidsprep.utils
+
+.. autofunction:: get_hdr_metadata
+
+.. raw:: html
+
+    <div class='clearer'></div>

@@ -1,0 +1,10 @@
+﻿get_nifti_affine
+================================================
+
+.. currentmodule:: bidsprep.io
+
+.. autofunction:: get_nifti_affine
+
+.. raw:: html
+
+    <div class='clearer'></div>

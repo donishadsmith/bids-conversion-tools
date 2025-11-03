@@ -1,0 +1,10 @@
+﻿get_n_slices
+===============================================
+
+.. currentmodule:: bidsprep.utils
+
+.. autofunction:: get_n_slices
+
+.. raw:: html
+
+    <div class='clearer'></div>

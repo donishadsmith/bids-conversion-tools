@@ -1,0 +1,10 @@
+﻿get_tr
+=========================================
+
+.. currentmodule:: bidsprep.utils
+
+.. autofunction:: get_tr
+
+.. raw:: html
+
+    <div class='clearer'></div>

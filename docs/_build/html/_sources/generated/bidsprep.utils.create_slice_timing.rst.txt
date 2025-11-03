@@ -1,0 +1,10 @@
+﻿create_slice_timing
+======================================================
+
+.. currentmodule:: bidsprep.utils
+
+.. autofunction:: create_slice_timing
+
+.. raw:: html
+
+    <div class='clearer'></div>

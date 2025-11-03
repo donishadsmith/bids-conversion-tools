@@ -6,6 +6,7 @@ repos:
     -   id: end-of-file-fixer
     -   id: check-yaml
     -   id: check-added-large-files
+        exclude: ^docs
     -   id: check-case-conflict
     -   id: check-merge-conflict
     -   id: mixed-line-ending
@@ -20,3 +21,4 @@ repos:
     hooks:
         - id: ruff
           entry: ruff check --select T201
+          files: '(^bidsprep/.*\.py$|.*^tests.*\.py$)'

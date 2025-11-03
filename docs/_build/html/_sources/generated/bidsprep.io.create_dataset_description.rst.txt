@@ -1,0 +1,10 @@
+﻿create_dataset_description
+==========================================================
+
+.. currentmodule:: bidsprep.io
+
+.. autofunction:: create_dataset_description
+
+.. raw:: html
+
+    <div class='clearer'></div>

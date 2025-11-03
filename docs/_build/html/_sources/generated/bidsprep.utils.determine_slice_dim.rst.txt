@@ -1,0 +1,10 @@
+﻿determine_slice_dim
+======================================================
+
+.. currentmodule:: bidsprep.utils
+
+.. autofunction:: determine_slice_dim
+
+.. raw:: html
+
+    <div class='clearer'></div>

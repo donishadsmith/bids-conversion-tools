@@ -1,0 +1,10 @@
+﻿setup_logger
+================================================
+
+.. currentmodule:: bidsprep.logger
+
+.. autofunction:: setup_logger
+
+.. raw:: html
+
+    <div class='clearer'></div>
