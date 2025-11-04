@@ -382,8 +382,8 @@ def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
 
     Extracts the date from the name a file.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     filename: :obj:`str`
         The absolute path or name of file.
 
