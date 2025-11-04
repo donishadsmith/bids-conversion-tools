@@ -78,14 +78,14 @@ def test_create_slice_timing(slice_acquisition_method):
             slice_acquisition_method=slice_acquisition_method,
             ascending=True,
         )
-        assert slice_timing_dict == {0: 0, 1: 0.5, 2: 1, 3: 1.5}
+        assert slice_timing_dict == [0, 0.5, 1, 1.5]
 
         slice_timing_dict = bids_utils.create_slice_timing(
             nifti_file_or_img=img,
             slice_acquisition_method=slice_acquisition_method,
             ascending=False,
         )
-        assert slice_timing_dict == {0: 1.5, 1: 1, 2: 0.5, 3: 0}
+        assert slice_timing_dict == [1.5, 1, 0.5, 0]
     else:
         slice_timing_dict = bids_utils.create_slice_timing(
             nifti_file_or_img=img,
@@ -93,7 +93,7 @@ def test_create_slice_timing(slice_acquisition_method):
             ascending=True,
             interleaved_order="odd_first",
         )
-        assert slice_timing_dict == {0: 0, 1: 1, 2: 0.5, 3: 1.5}
+        assert slice_timing_dict == [0, 1, 0.5, 1.5]
 
         slice_timing_dict = bids_utils.create_slice_timing(
             nifti_file_or_img=img,
@@ -101,7 +101,7 @@ def test_create_slice_timing(slice_acquisition_method):
             ascending=False,
             interleaved_order="odd_first",
         )
-        assert slice_timing_dict == {0: 1.5, 1: 0.5, 2: 1, 3: 0}
+        assert slice_timing_dict == [1.5, 0.5, 1, 0]
 
         slice_timing_dict = bids_utils.create_slice_timing(
             nifti_file_or_img=img,
@@ -109,7 +109,7 @@ def test_create_slice_timing(slice_acquisition_method):
             ascending=True,
             interleaved_order="even_first",
         )
-        assert slice_timing_dict == {0: 1, 1: 0, 2: 1.5, 3: 0.5}
+        assert slice_timing_dict == [1, 0, 1.5, 0.5]
 
         slice_timing_dict = bids_utils.create_slice_timing(
             nifti_file_or_img=img,
@@ -117,7 +117,7 @@ def test_create_slice_timing(slice_acquisition_method):
             ascending=False,
             interleaved_order="even_first",
         )
-        assert slice_timing_dict == {0: 0.5, 1: 1.5, 2: 0, 3: 1}
+        assert slice_timing_dict == [0.5, 1.5, 0, 1]
 
 
 def test_is_3d_img(nifti_img_and_path):

@@ -243,7 +243,7 @@ def create_slice_timing(
     slice_acquisition_method: Literal["sequential", "interleaved"],
     ascending: bool = True,
     interleaved_order: Literal["even_first", "odd_first"] = "odd_first",
-) -> dict[int, float]:
+) -> list[float]:
     """
     Create slice timing dictionary mapping the slice index to its
     acquisition time.
@@ -266,8 +266,8 @@ def create_slice_timing(
 
     Returns
     -------
-    dict[int, float]
-        Dictionary mapping the slice number to the time the slice was aquired.
+    list[float]
+        List containing the slice timing acquisition.
     """
     slice_ordering_func = {
         "sequential": _create_sequential_order,
@@ -285,11 +285,12 @@ def create_slice_timing(
 
     slice_order = slice_ordering_func[slice_acquisition_method](**kwargs)
     slice_timing = np.linspace(0, tr - slice_duration, n_slices)
-
     # Pair slice with timing then sort dict
-    return dict(
+    sorted_slice_timing = dict(
         sorted({k: v for k, v in zip(slice_order, slice_timing.tolist())}.items())
     )
+
+    return list(sorted_slice_timing.values())
 
 
 def is_3d_img(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> bool:
