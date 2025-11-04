@@ -57,14 +57,14 @@ def compress_image(nifti_file: str, remove_src_file: bool = False) -> None:
         os.remove(nifti_file)
 
 
-def get_files(target_dir: str, ext: str) -> list[str]:
+def glob_contents(src_dir: str, pattern: str) -> list[str]:
     """
-    Gets files with a specific extension.
+    Use glob to get contents with specific patterns.
 
     Parameters
     ----------
-    target_dir: :obj:`str`
-        The target directory.
+    src_dir: :obj:`str`
+        The source directory.
 
     ext: :obj:`str`
         The extension.
@@ -72,9 +72,9 @@ def get_files(target_dir: str, ext: str) -> list[str]:
     Returns
     -------
     list[str]
-        List of files with the extension specified by ``ext``.
+        List of contents with the pattern specified by ``pattern``.
     """
-    return glob.glob(os.path.join(target_dir, f"*{ext}"))
+    return glob.glob(os.path.join(src_dir, f"*{pattern}"))
 
 
 def get_nifti_header(nifti_file_or_img):

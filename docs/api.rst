@@ -28,7 +28,7 @@ Module for input/output operations on NIfTI files and images.
 
    load_nifti
    compress_image
-   get_files
+   glob_contents
    get_nifti_header
    get_nifti_affine
    create_bids_file
@@ -55,3 +55,4 @@ Module containing utility functions.
    get_scanner_info
    is_valid_date
    get_date_from_filename
+   create_participant_tsv

@@ -1,4 +1,5 @@
-import nibabel as nib, pytest
+import os
+import nibabel as nib, pandas as pd, pytest
 import bidsprep.utils as bids_utils
 
 
@@ -150,3 +151,14 @@ def test_get_date_from_filename():
 
     date = bids_utils.get_date_from_filename("101_mprage_32chan.nii", "%y%m%d")
     assert not date
+
+
+def test_create_participant_tsv(tmp_dir):
+    """Test for ``get_date_from_filename``."""
+    os.makedirs(os.path.join(tmp_dir.name, "sub-01"))
+    bids_utils.create_participant_tsv(tmp_dir.name)
+    filename = os.path.join(tmp_dir.name, "participants.tsv")
+    assert os.path.isfile(filename)
+
+    df = pd.read_csv(filename, sep="\t")
+    assert df["participant_id"].values[0] == "sub-01"

@@ -2,6 +2,10 @@
 
 Documentation of changes for each version of ``BIDSPrep``.
 
+## [0.0.4] - 2025-11-04
+- Add function to create participants tsv file.
+- ``get_files`` changed to ``glob_contents``.
+
 ## [0.0.3] - 2025-11-04
 - Add function for extracting date from filenames.
 

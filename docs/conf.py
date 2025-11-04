@@ -15,7 +15,7 @@ from github_link import make_linkcode_resolve
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "bidsprep"
-copyright = "2025, Donisha Smith"
+copyright = "2025, BIDSPrep Developers"
 author = "Donisha Smith"
 
 import bidsprep

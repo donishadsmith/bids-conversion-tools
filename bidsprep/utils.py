@@ -3,11 +3,11 @@
 import datetime, os, re
 from typing import Any, Literal, Optional
 
-import nibabel as nib, numpy as np
+import nibabel as nib, numpy as np, pandas as pd
 
 from ._exceptions import IncorrectSliceDimension
 from ._decorators import check_all_none
-from .io import get_nifti_header
+from .io import get_nifti_header, glob_contents
 from .logger import setup_logger
 
 LGR = setup_logger(__name__)
@@ -413,3 +413,19 @@ def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
             break
 
     return date_str
+
+
+def create_participant_tsv(bids_dir: str) -> None:
+    """
+    Creates a participant TSV file.
+
+    Parameters
+    ----------
+    bids_dir: :obj:`str`
+        The BIDS compliant directory.
+    """
+    participants = [
+        os.path.basename(folder) for folder in glob_contents(bids_dir, "*sub-*")
+    ]
+    df = pd.DataFrame({"participant_id": participants})
+    df.to_csv(os.path.join(bids_dir, "participants.tsv"), sep="\t", index=None)
