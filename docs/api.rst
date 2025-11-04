@@ -53,3 +53,5 @@ Module containing utility functions.
    create_slice_timing
    is_3d_img
    get_scanner_info
+   is_valid_date
+   get_date_from_filename

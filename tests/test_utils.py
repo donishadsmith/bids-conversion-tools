@@ -141,3 +141,12 @@ def test_get_scanner_info(nifti_img_and_path):
     manufacturer_name, model_name = bids_utils.get_scanner_info(img)
     assert manufacturer_name == "Philips"
     assert model_name == "Ingenia Elition X 5.7.1"
+
+
+def test_get_date_from_filename():
+    """Test for ``get_date_from_filename``."""
+    date = bids_utils.get_date_from_filename("101_240820_mprage_32chan.nii", "%y%m%d")
+    assert date == "240820"
+
+    date = bids_utils.get_date_from_filename("101_mprage_32chan.nii", "%y%m%d")
+    assert not date

@@ -1,5 +1,6 @@
 """Utility functions to extract metadata."""
 
+import datetime, os, re
 from typing import Any, Literal, Optional
 
 import nibabel as nib, numpy as np
@@ -344,3 +345,71 @@ def get_scanner_info(
     manufacturer_name, _, model_name = scanner_info.partition(" ")
 
     return manufacturer_name, model_name
+
+
+def is_valid_date(date_str: str, date_fmt: str) -> bool:
+    """
+    Determine if a string is a valid date based on format.
+
+    Parameters
+    ----------
+    date_str: :obj:`str`
+        The string to be validated.
+
+    date_fmt:
+        The expected format of the date.
+
+    Return
+    ------
+    bool
+        True if ``date_str`` has the format specified by ``date_fmt``
+
+    Example
+    -------
+    >>> is_valid_date("241010", "%y%m%d")
+        True
+    """
+    try:
+        datetime.datetime.strptime(date_str, date_fmt)
+        return True
+    except ValueError:
+        return False
+
+
+def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
+    """
+    Get date from filename.
+
+    Extracts the date from the name a file.
+
+    Paramters
+    ---------
+    filename: :obj:`str`
+        The absolute path or name of file.
+
+    date_fmt:
+        The expected format of the date.
+
+    Returns
+    -------
+    str or None:
+        A string if a valid date based on specified ``date_fmt`` is detected
+        or None if no valid date is detected.
+
+    Example
+    -------
+    >>> get_date_from_filename("101_240820_mprage_32chan.nii", "%y%m%d")
+        "240820"
+    """
+    split_pattern = "|".join(map(re.escape, ["_", "-", " "]))
+
+    basename = os.path.basename(filename)
+    split_basename = re.split(split_pattern, basename)
+
+    date_str = None
+    for part in split_basename:
+        if is_valid_date(part, date_fmt):
+            date_str = part
+            break
+
+    return date_str
