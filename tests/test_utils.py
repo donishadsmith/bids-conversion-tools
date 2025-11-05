@@ -122,6 +122,14 @@ def test_create_slice_timing(slice_acquisition_method):
         )
         assert slice_timing_dict == [0.5, 1.5, 0, 1]
 
+    with pytest.raises(ValueError):
+        slice_timing_dict = bids_utils.create_slice_timing(
+            nifti_file_or_img=img,
+            slice_acquisition_method=slice_acquisition_method,
+            ascending=False,
+            interleaved_order="odds_first",
+        )
+
 
 def test_is_3d_img(nifti_img_and_path):
     """Test for ``is_3d_img``."""

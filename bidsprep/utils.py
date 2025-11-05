@@ -290,6 +290,10 @@ def create_slice_timing(
     list[float]
         List containing the slice timing acquisition.
     """
+    if interleaved_order not in ["odd_first", "even_first"]:
+        raise ValueError(
+            "``interleaved_order`` must be either 'odd_first' or 'even_first'."
+        )
     slice_ordering_func = {
         "sequential": _create_sequential_order,
         "interleaved": _create_interleaved_order,

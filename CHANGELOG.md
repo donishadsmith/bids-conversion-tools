@@ -2,11 +2,14 @@
 
 Documentation of changes for each version of ``BIDSPrep``.
 
+## [0.0.6] - 2025-11-04
+- Add exception to ``create_slice_timing`` for safety
+
 ## [0.0.5] - 2025-11-04
 - Fix ``create_bids_filename`` to not add "desc"
 - Return numeric values as regular Python integers and float
 - Add function to extract entity value
-- Change ``destination_dir`` and ``output_dir`` to ``dst_dir``.
+- Change ``destination_dir`` and ``output_dir`` to ``dst_dir``
 
 ## [0.0.4] - 2025-11-04
 - Add function to create participants tsv file.
