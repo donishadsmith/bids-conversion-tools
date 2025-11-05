@@ -51,6 +51,21 @@ def determine_slice_dim(
     return np.where(dims == n_slices)[0][0]
 
 
+def _is_numeric(value: Any) -> bool:
+    """
+    Check if value is a number.
+    """
+    return isinstance(value, (float, int))
+
+
+def _to_native_numeric(value):
+    """
+    Ensures numpy floats and integers are converted
+    to regular Python floats and integers.
+    """
+    return float(value) if isinstance(value, np.floating) else int(value)
+
+
 @check_all_none(parameter_names=["nifti_file_or_img", "nifti_header"])
 def get_hdr_metadata(
     metadata_name: str,
@@ -87,6 +102,11 @@ def get_hdr_metadata(
     """
     hdr = nifti_header if nifti_header else get_nifti_header(nifti_file_or_img)
     metadata_value = hdr.get(metadata_name)
+    metadata_value = (
+        _to_native_numeric(metadata_value)
+        if _is_numeric(metadata_value)
+        else metadata_value
+    )
 
     return metadata_value if not return_header else (metadata_value, hdr)
 
@@ -134,7 +154,7 @@ def get_n_slices(
         f"{reversed_slice_dim_map.get(slice_dim_indx)}: {n_slices}"
     )
 
-    return n_slices
+    return _to_native_numeric(n_slices)
 
 
 def get_tr(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> float:
@@ -158,7 +178,7 @@ def get_tr(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> float:
 
     LGR.info(f"Repetition Time: {tr}.")
 
-    return tr
+    return round(_to_native_numeric(tr), 2)
 
 
 def _flip_slice_order(slice_order, ascending: bool) -> list[int]:
@@ -429,3 +449,26 @@ def create_participant_tsv(bids_dir: str) -> None:
     ]
     df = pd.DataFrame({"participant_id": participants})
     df.to_csv(os.path.join(bids_dir, "participants.tsv"), sep="\t", index=None)
+
+
+def get_entity_value(filename: str, entity: str) -> str | None:
+    """
+    Gets entity value of a BIDS compliant filename.
+
+    Parameters
+    ----------
+    filename: :obj:`str`
+        Filename to extract entity from.
+
+    entity: :obj:`str`
+        The entity key (e.g. "sub", "task")
+
+    Returns
+    -------
+    str or None
+        The entity value.
+    """
+    basename = os.path.basename(filename)
+    match = re.search(rf"{entity}-([^_\.]+)", basename)
+
+    return match.group(1) if match else None

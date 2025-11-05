@@ -143,7 +143,7 @@ def create_bids_file(
     ses_id: Optional[str | int] = None,
     task_id: Optional[str] = None,
     run_id: Optional[str | int] = None,
-    destination_dir: str = None,
+    dst_dir: str = None,
     remove_src_file: bool = False,
     return_bids_filename: bool = False,
 ) -> str | None:
@@ -173,7 +173,7 @@ def create_bids_file(
     run_id: :obj:`str` or :obj:`int` or :obj:`None`, default=None
         Run ID (i.e. 001, 1, etc). Optional entity.
 
-    destination_dir: :obj:`str`, default=None
+    dst_dir: :obj:`str`, default=None
         Directory name to copy the BIDS file to. If None, then the
         BIDS file is copied to the same directory as
 
@@ -194,17 +194,15 @@ def create_bids_file(
     There are additional entities that can be used that are
     not included in this function
     """
-    bids_filename = (
-        f"sub-{subj_id}_ses-{ses_id}_task-{task_id}_" f"run-{run_id}_desc-{desc}"
-    )
+    bids_filename = f"sub-{subj_id}_ses-{ses_id}_task-{task_id}_" f"run-{run_id}_{desc}"
     bids_filename = _strip_none_entities(bids_filename)
 
     ext = f"{nifti_file.partition('.')[-1]}"
     bids_filename += f"{ext}"
     bids_filename = (
         os.path.join(os.path.dirname(nifti_file), bids_filename)
-        if destination_dir is None
-        else os.path.join(destination_dir, bids_filename)
+        if dst_dir is None
+        else os.path.join(dst_dir, bids_filename)
     )
 
     _copy_file(nifti_file, bids_filename, remove_src_file)
@@ -267,9 +265,7 @@ def create_dataset_description(dataset_name: str, bids_version: str = "1.0.0") -
     return {"Name": dataset_name, "BIDSVersion": bids_version}
 
 
-def save_dataset_description(
-    dataset_description: dict[str, str], output_dir: str
-) -> None:
+def save_dataset_description(dataset_description: dict[str, str], dst_dir: str) -> None:
     """
     Save a dataset description dictionary.
 
@@ -281,11 +277,11 @@ def save_dataset_description(
     dataset_description: :obj:`dict`
         The dataset description dictionary.
 
-    output_dir: :obj:`str`
+    dst_dir: :obj:`str`
         Path to save the JSON file to.
 
     """
     with open(
-        os.path.join(output_dir, "dataset_description.json"), "w", encoding="utf-8"
+        os.path.join(dst_dir, "dataset_description.json"), "w", encoding="utf-8"
     ) as f:
         json.dump(dataset_description, f)

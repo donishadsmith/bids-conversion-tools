@@ -56,3 +56,4 @@ Module containing utility functions.
    is_valid_date
    get_date_from_filename
    create_participant_tsv
+   get_entity_value

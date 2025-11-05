@@ -1,5 +1,5 @@
 import os
-import nibabel as nib, pandas as pd, pytest
+import nibabel as nib, numpy as np, pandas as pd, pytest
 import bidsprep.utils as bids_utils
 
 
@@ -58,6 +58,8 @@ def test_get_tr(nifti_img_and_path):
     img, _ = nifti_img_and_path
     img.header["pixdim"][4] = 2.3
     assert bids_utils.get_tr(img) == 2.3
+    assert not isinstance(bids_utils.get_tr(img), np.floating)
+    assert not isinstance(bids_utils.get_tr(img), np.integer)
 
     img.header["pixdim"][4] = 0
     with pytest.raises(ValueError):
@@ -162,3 +164,10 @@ def test_create_participant_tsv(tmp_dir):
 
     df = pd.read_csv(filename, sep="\t")
     assert df["participant_id"].values[0] == "sub-01"
+
+
+def test_get_entity_value():
+    """Test for ``get_entity_value``."""
+    filename = "sub-01_task-test_bold.nii.gz"
+    assert bids_utils.get_entity_value(filename, "task") == "test"
+    assert not bids_utils.get_entity_value(filename, "ses")

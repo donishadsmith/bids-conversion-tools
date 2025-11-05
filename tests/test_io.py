@@ -48,41 +48,35 @@ def test_get_nifti_affine(nifti_img_and_path):
     assert bids_io.get_nifti_affine(img).shape == (4, 4)
 
 
-@pytest.mark.parametrize(
-    "destination_dir, remove_src_file", ([None, True], [True, False])
-)
-def test_create_bids_file(
-    nifti_img_and_path, tmp_dir, destination_dir, remove_src_file
-):
+@pytest.mark.parametrize("dst_dir, remove_src_file", ([None, True], [True, False]))
+def test_create_bids_file(nifti_img_and_path, tmp_dir, dst_dir, remove_src_file):
     """Test for ``create_bids_file``."""
     _, img_path = nifti_img_and_path
-    destination_dir = (
-        None if not destination_dir else os.path.join(tmp_dir.name, "test")
-    )
-    if destination_dir:
-        os.makedirs(destination_dir)
+    dst_dir = None if not dst_dir else os.path.join(tmp_dir.name, "test")
+    if dst_dir:
+        os.makedirs(dst_dir)
 
     bids_filename = bids_io.create_bids_file(
         img_path,
         subj_id="01",
         desc="bold",
         remove_src_file=remove_src_file,
-        destination_dir=destination_dir,
+        dst_dir=dst_dir,
         return_bids_filename=True,
     )
     assert bids_filename
-    assert os.path.basename(bids_filename) == "sub-01_desc-bold.nii"
+    assert os.path.basename(bids_filename) == "sub-01_bold.nii"
 
-    if destination_dir:
-        dst_file = glob.glob(os.path.join(destination_dir, "*nii"))[0]
-        assert os.path.basename(dst_file) == "sub-01_desc-bold.nii"
+    if dst_dir:
+        dst_file = glob.glob(os.path.join(dst_dir, "*nii"))[0]
+        assert os.path.basename(dst_file) == "sub-01_bold.nii"
 
         src_file = glob.glob(os.path.join(os.path.dirname(img_path), "*.nii"))[0]
         assert os.path.basename(src_file) == "img.nii"
     else:
         files = glob.glob(os.path.join(os.path.dirname(img_path), "*.nii"))
         assert len(files) == 1
-        assert os.path.basename(files[0]) == "sub-01_desc-bold.nii"
+        assert os.path.basename(files[0]) == "sub-01_bold.nii"
 
 
 def test_create_dataset_description():
