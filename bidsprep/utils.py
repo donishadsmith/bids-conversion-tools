@@ -467,6 +467,11 @@ def get_entity_value(filename: str, entity: str) -> str | None:
     -------
     str or None
         The entity value.
+
+    Example
+    -------
+    >>> get_entity_value("sub-01_task-flanker_bold.nii.gz", "task")
+        "flanker"
     """
     basename = os.path.basename(filename)
     match = re.search(rf"{entity}-([^_\.]+)", basename)

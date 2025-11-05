@@ -192,7 +192,7 @@ def create_bids_file(
     Note
     ----
     There are additional entities that can be used that are
-    not included in this function
+    not included in this function.
     """
     bids_filename = f"sub-{subj_id}_ses-{ses_id}_task-{task_id}_" f"run-{run_id}_{desc}"
     bids_filename = _strip_none_entities(bids_filename)
@@ -226,9 +226,9 @@ def _strip_none_entities(bids_filename: str) -> str:
 
     Example
     -------
-    >>> bids_filename = "sub-101_ses-None_task-flanker_desc-bold.nii.gz"
+    >>> bids_filename = "sub-101_ses-None_task-flanker_bold.nii.gz"
     >>> _strip_none_entities(bids_filename)
-        "sub-101_task-flanker_desc-bold.nii.gz"
+        "sub-101_task-flanker_bold.nii.gz"
     """
     basename, _, ext = bids_filename.partition(".")
     retained_entities = [
@@ -279,7 +279,6 @@ def save_dataset_description(dataset_description: dict[str, str], dst_dir: str) 
 
     dst_dir: :obj:`str`
         Path to save the JSON file to.
-
     """
     with open(
         os.path.join(dst_dir, "dataset_description.json"), "w", encoding="utf-8"
