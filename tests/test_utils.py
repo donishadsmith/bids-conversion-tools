@@ -38,15 +38,27 @@ def test_determine_slice_dim(nifti_img_and_path):
     assert bids_utils.determine_slice_dim(img) == 2
 
 
+def test_get_n_volumes(nifti_img_and_path):
+    """Test for ``get_n_volumes``."""
+    img, _ = nifti_img_and_path
+    assert bids_utils.get_n_volumes(img) == 5
+
+    from bidsprep.simulate import simulate_nifti_image
+    from bidsprep._exceptions import DataDimensionError
+
+    with pytest.raises(DataDimensionError):
+        bids_utils.get_n_volumes(simulate_nifti_image((10, 10, 10)))
+
+
 def test_get_n_slices(nifti_img_and_path):
     """Test for ``get_n_slices``."""
-    from bidsprep._exceptions import IncorrectSliceDimension
+    from bidsprep._exceptions import SliceDimensionError
 
     img, _ = nifti_img_and_path
     # Subtract one to convert to index
     img.header["slice_end"] = img.get_fdata().shape[2] - 1
 
-    with pytest.raises(IncorrectSliceDimension):
+    with pytest.raises(SliceDimensionError):
         bids_utils.get_n_slices(img, slice_dim="x")
 
     assert bids_utils.get_n_slices(img, slice_dim="z") == img.header["slice_end"] + 1

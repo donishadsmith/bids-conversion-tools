@@ -5,9 +5,9 @@ from typing import Any, Literal, Optional
 
 import nibabel as nib, numpy as np, pandas as pd
 
-from ._exceptions import IncorrectSliceDimension
+from ._exceptions import SliceDimensionError, DataDimensionError
 from ._decorators import check_all_none
-from .io import get_nifti_header, glob_contents
+from .io import load_nifti, get_nifti_header, glob_contents
 from .logger import setup_logger
 
 LGR = setup_logger(__name__)
@@ -111,6 +111,28 @@ def get_hdr_metadata(
     return metadata_value if not return_header else (metadata_value, hdr)
 
 
+def get_n_volumes(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> int:
+    """
+    Get the number of volumes from a 4D NIftI image.
+
+    Parameters
+    ----------
+    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
+        Path to the NIfTI file or a NIfTI image.
+
+    Returns
+    -------
+    int
+        The number of volumes in img.
+    """
+    img = load_nifti(nifti_file_or_img)
+
+    if is_3d_img(img):
+        raise DataDimensionError("Image is 3D not 4D.")
+
+    return img.get_fdata().shape[-1]
+
+
 def get_n_slices(
     nifti_file_or_img: str | nib.nifti1.Nifti1Image,
     slice_dim: Optional[Literal["x", "y", "z"]] = None,
@@ -140,7 +162,7 @@ def get_n_slices(
         n_slices = hdr.get_data_shape()[slice_dim_map[slice_dim]]
         if slice_end := get_hdr_metadata(nifti_header=hdr, metadata_name="slice_end"):
             if not np.isnan(slice_end) and n_slices != slice_end + 1:
-                raise IncorrectSliceDimension(slice_dim, n_slices, slice_end)
+                raise SliceDimensionError(slice_dim, n_slices, slice_end)
 
         slice_dim_indx = slice_dim_map[slice_dim]
     else:

@@ -3,7 +3,7 @@
 from typing import Literal, Optional
 
 
-class IncorrectSliceDimension(Exception):
+class SliceDimensionError(Exception):
     """
     Incorrect slice dimension.
 
@@ -41,3 +41,11 @@ class IncorrectSliceDimension(Exception):
             self.message = message
 
         super().__init__(self.message)
+
+
+class DataDimensionError(Exception):
+    """
+    Incorrect data dimensionality.
+    """
+
+    pass

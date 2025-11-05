@@ -48,6 +48,7 @@ Module containing utility functions.
 
    determine_slice_dim
    get_hdr_metadata
+   get_n_volumes
    get_n_slices
    get_tr
    create_slice_timing

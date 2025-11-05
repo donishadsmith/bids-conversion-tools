@@ -2,6 +2,9 @@
 
 Documentation of changes for each version of ``BIDSPrep``.
 
+## [0.0.7] - 2025-11-05
+- Add  ``get_n_volumes`` function and change custom exceptions names
+
 ## [0.0.6] - 2025-11-04
 - Add exception to ``create_slice_timing`` for safety
 
