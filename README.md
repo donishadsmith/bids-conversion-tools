@@ -10,7 +10,7 @@
 [![Documentation Status](https://readthedocs.org/projects/bidsprep-py/badge/?version=latest)](http://bidsprep.readthedocs.io/en/latest/?badge=latest)
 
 
-Tools to assist in converting non-BIDS compliant MRI datasets to BIDS compliant datasets.
+Tools to assist in converting non-BIDS compliant MRI datasets (already converted from DICOM to NIfTI with no access to the original DICOMs) to BIDS compliant datasets.
 
 ## Installation
 To install ``bidsprep`` use one of the following methods:
