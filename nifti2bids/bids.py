@@ -1,3 +1,5 @@
+"""Module for creating BIDS compliant files."""
+
 import os, json
 from typing import Optional
 
