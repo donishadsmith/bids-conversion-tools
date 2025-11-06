@@ -226,6 +226,7 @@ def _strip_none_entities(bids_filename: str) -> str:
 
     Example
     -------
+    >>> from bidsrep.io import _strip_none_entities
     >>> bids_filename = "sub-101_ses-None_task-flanker_bold.nii.gz"
     >>> _strip_none_entities(bids_filename)
         "sub-101_task-flanker_bold.nii.gz"

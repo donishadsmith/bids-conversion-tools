@@ -25,3 +25,6 @@ def test_setup_logger(caplog):
     logging.getLogger().handlers.clear()
     logger = setup_logger("test2")
     assert isinstance(logger.handlers[0], rich.logging.RichHandler)
+
+    logger = setup_logger("test2", 20)
+    assert logger.level == 20

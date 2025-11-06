@@ -1,12 +1,14 @@
 """Module for logging."""
 
 import logging
-from typing import Union
+from typing import Optional
 
 from rich.logging import RichHandler
 
 
-def setup_logger(logger_name: str = None) -> logging.Logger:
+def setup_logger(
+    logger_name: str = None, level: Optional[int] = None
+) -> logging.Logger:
     """
     Sets up the logger.
 
@@ -19,6 +21,9 @@ def setup_logger(logger_name: str = None) -> logging.Logger:
     logger_name: :obj:`str`
         Name of the logger to return, if None, the root logger is returned.
 
+    level: :obj:`int` or :obj:`None`
+        The logging level. If None, the logging level is not set
+
     Returns
     -------
     Logger
@@ -27,6 +32,9 @@ def setup_logger(logger_name: str = None) -> logging.Logger:
     logger = logging.getLogger(logger_name)
     if not _has_handler(logger):
         logger = _add_default_handler(logger)
+
+    if level:
+        logger.setLevel(level)
 
     return logger
 
@@ -51,7 +59,7 @@ def _has_handler(logger):
     return True if (has_root_handler or has_module_handler) else False
 
 
-def _add_default_handler(logger: logging.Logger, format: Union[str, None] = None):
+def _add_default_handler(logger: logging.Logger, format: str | None = None):
     """
     Add a default and format handler. Uses ``RichHandler`` as the default logger.
 

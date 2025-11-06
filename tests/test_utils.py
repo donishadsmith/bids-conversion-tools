@@ -26,16 +26,16 @@ def test_get_hdr_metadata(nifti_img_and_path, return_header):
     assert slice_end == 100
 
 
-def test_determine_slice_dim(nifti_img_and_path):
-    """Test for ``determine_slice_dim``."""
+def test_determine_slice_axis(nifti_img_and_path):
+    """Test for ``determine_slice_axis``."""
     img, _ = nifti_img_and_path
 
     with pytest.raises(ValueError):
-        bids_utils.determine_slice_dim(img)
+        bids_utils.determine_slice_axis(img)
 
     # Subtract one to convert to index
     img.header["slice_end"] = img.get_fdata().shape[2] - 1
-    assert bids_utils.determine_slice_dim(img) == 2
+    assert bids_utils.determine_slice_axis(img) == 2
 
 
 def test_get_n_volumes(nifti_img_and_path):
@@ -52,16 +52,16 @@ def test_get_n_volumes(nifti_img_and_path):
 
 def test_get_n_slices(nifti_img_and_path):
     """Test for ``get_n_slices``."""
-    from bidsprep._exceptions import SliceDimensionError
+    from bidsprep._exceptions import SliceAxisError
 
     img, _ = nifti_img_and_path
     # Subtract one to convert to index
     img.header["slice_end"] = img.get_fdata().shape[2] - 1
 
-    with pytest.raises(SliceDimensionError):
-        bids_utils.get_n_slices(img, slice_dim="x")
+    with pytest.raises(SliceAxisError):
+        bids_utils.get_n_slices(img, slice_axis="x")
 
-    assert bids_utils.get_n_slices(img, slice_dim="z") == img.header["slice_end"] + 1
+    assert bids_utils.get_n_slices(img, slice_axis="z") == img.header["slice_end"] + 1
     assert bids_utils.get_n_slices(img) == img.header["slice_end"] + 1
 
 
@@ -191,3 +191,12 @@ def test_get_entity_value():
     filename = "sub-01_task-test_bold.nii.gz"
     assert bids_utils.get_entity_value(filename, "task") == "test"
     assert not bids_utils.get_entity_value(filename, "ses")
+
+
+def test_infer_task_from_image(nifti_img_and_path):
+    """Test for ``infer_task_from_image``."""
+    img, _ = nifti_img_and_path
+
+    volume_to_task_map = {5: "flanker", 10: "nback"}
+
+    assert bids_utils.infer_task_from_image(img, volume_to_task_map) == "flanker"

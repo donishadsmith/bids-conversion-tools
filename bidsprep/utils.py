@@ -5,7 +5,7 @@ from typing import Any, Literal, Optional
 
 import nibabel as nib, numpy as np, pandas as pd
 
-from ._exceptions import SliceDimensionError, DataDimensionError
+from ._exceptions import SliceAxisError, DataDimensionError
 from ._decorators import check_all_none
 from .io import load_nifti, get_nifti_header, glob_contents
 from .logger import setup_logger
@@ -14,14 +14,14 @@ LGR = setup_logger(__name__)
 
 
 @check_all_none(parameter_names=["nifti_file_or_img", "nifti_header"])
-def determine_slice_dim(
+def determine_slice_axis(
     nifti_file_or_img: Optional[str | nib.nifti1.Nifti1Image] = None,
     nifti_header: Optional[nib.nifti1.Nifti1Header] = None,
 ) -> int:
     """
-    Determine the slice dimension.
+    Determine the slice axis.
 
-    Uses "slice_end" plus one to determine the likely slice dimension.
+    Uses "slice_end" plus one to determine the likely slice axis.
 
     Parameters
     ----------
@@ -36,7 +36,7 @@ def determine_slice_dim(
     Returns
     -------
     int
-        A number representing the slice dimension.
+        A number representing the slice axis.
     """
     kwargs = {"nifti_file_or_img": nifti_file_or_img, "nifti_header": nifti_header}
     slice_end, hdr = get_hdr_metadata(
@@ -135,7 +135,7 @@ def get_n_volumes(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> int:
 
 def get_n_slices(
     nifti_file_or_img: str | nib.nifti1.Nifti1Image,
-    slice_dim: Optional[Literal["x", "y", "z"]] = None,
+    slice_axis: Optional[Literal["x", "y", "z"]] = None,
 ) -> int:
     """
     Gets the number of slices from the header of a NIfTI image.
@@ -145,9 +145,9 @@ def get_n_slices(
     nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
-    slice_dim: :obj:`Literal["x", "y", "z"]` or :obj:`None`, default=None
-        Dimension the image slices were collected in. If None,
-        determines the slice dimension using metadata ("slice_end")
+    slice_axis: :obj:`Literal["x", "y", "z"]` or :obj:`None`, default=None
+        Axis the image slices were collected in. If None,
+        determines the slice axis using metadata ("slice_end")
         from the NIfTI header.
 
     Returns
@@ -158,15 +158,15 @@ def get_n_slices(
     slice_dim_map = {"x": 0, "y": 1, "z": 2}
 
     hdr = get_nifti_header(nifti_file_or_img)
-    if slice_dim:
-        n_slices = hdr.get_data_shape()[slice_dim_map[slice_dim]]
+    if slice_axis:
+        n_slices = hdr.get_data_shape()[slice_dim_map[slice_axis]]
         if slice_end := get_hdr_metadata(nifti_header=hdr, metadata_name="slice_end"):
             if not np.isnan(slice_end) and n_slices != slice_end + 1:
-                raise SliceDimensionError(slice_dim, n_slices, slice_end)
+                raise SliceAxisError(slice_axis, n_slices, slice_end)
 
-        slice_dim_indx = slice_dim_map[slice_dim]
+        slice_dim_indx = slice_dim_map[slice_axis]
     else:
-        slice_dim_indx = determine_slice_dim(nifti_header=hdr)
+        slice_dim_indx = determine_slice_axis(nifti_header=hdr)
 
     reversed_slice_dim_map = {v: k for v, k in slice_dim_map.items()}
 
@@ -412,6 +412,7 @@ def is_valid_date(date_str: str, date_fmt: str) -> bool:
 
     Example
     -------
+    >>> from bidsprep.utils import is_valid_date
     >>> is_valid_date("241010", "%y%m%d")
         True
     """
@@ -444,6 +445,7 @@ def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
 
     Example
     -------
+    >>> from bidsprep.utils import get_date_from_filename
     >>> get_date_from_filename("101_240820_mprage_32chan.nii", "%y%m%d")
         "240820"
     """
@@ -496,6 +498,7 @@ def get_entity_value(filename: str, entity: str) -> str | None:
 
     Example
     -------
+    >>> from bidsprep.utils import get_entity_value
     >>> get_entity_value("sub-01_task-flanker_bold.nii.gz", "task")
         "flanker"
     """
@@ -503,3 +506,36 @@ def get_entity_value(filename: str, entity: str) -> str | None:
     match = re.search(rf"{entity}-([^_\.]+)", basename)
 
     return match.group(1) if match else None
+
+
+def infer_task_from_image(
+    nifti_file_or_img: str | nib.nifti1.Nifti1Image, volume_to_task_map: dict[int, str]
+) -> str:
+    """
+    Infer the task based on the number of volumes in a 4D NIfTI image.
+
+    Parameters
+    ----------
+    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`, default=None
+        Path to the NIfTI file or a NIfTI image.
+
+    volume_to_task_map: :obj:`dict[int, str]`
+        A mapping of the number of volumes for each taskname.
+
+    Returns
+    -------
+    str
+        The task name.
+
+    Example
+    -------
+    >>> from bidsprep.io import simulate_nifti_image
+    >>> from bidsprep.utils import infer_task_from_image
+    >>> img = simulate_nifti_image((100, 100, 100, 260))
+    >>> volume_to_task_map = {300: "flanker", 260: "nback"}
+    >>> infer_task_from_image(img, volume_to_task_map)
+        "nback"
+    """
+    n_volumes = get_n_volumes(nifti_file_or_img)
+
+    return volume_to_task_map.get(n_volumes)
