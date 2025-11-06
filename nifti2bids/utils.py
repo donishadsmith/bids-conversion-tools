@@ -412,7 +412,7 @@ def is_valid_date(date_str: str, date_fmt: str) -> bool:
 
     Example
     -------
-    >>> from bidsprep.utils import is_valid_date
+    >>> from nifti2bids.utils import is_valid_date
     >>> is_valid_date("241010", "%y%m%d")
         True
     """
@@ -445,7 +445,7 @@ def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
 
     Example
     -------
-    >>> from bidsprep.utils import get_date_from_filename
+    >>> from nifti2bids.utils import get_date_from_filename
     >>> get_date_from_filename("101_240820_mprage_32chan.nii", "%y%m%d")
         "240820"
     """
@@ -498,7 +498,7 @@ def get_entity_value(filename: str, entity: str) -> str | None:
 
     Example
     -------
-    >>> from bidsprep.utils import get_entity_value
+    >>> from nifti2bids.utils import get_entity_value
     >>> get_entity_value("sub-01_task-flanker_bold.nii.gz", "task")
         "flanker"
     """
@@ -529,8 +529,8 @@ def infer_task_from_image(
 
     Example
     -------
-    >>> from bidsprep.io import simulate_nifti_image
-    >>> from bidsprep.utils import infer_task_from_image
+    >>> from nifti2bids.io import simulate_nifti_image
+    >>> from nifti2bids.utils import infer_task_from_image
     >>> img = simulate_nifti_image((100, 100, 100, 260))
     >>> volume_to_task_map = {300: "flanker", 260: "nback"}
     >>> infer_task_from_image(img, volume_to_task_map)

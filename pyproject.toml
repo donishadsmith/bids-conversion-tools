@@ -3,14 +3,14 @@ requires = ["setuptools>=77.0.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {attr = "bidsprep.__version__"}
+version = {attr = "nifti2bids.__version__"}
 
 [project]
-name = "bidsprep"
+name = "nifti2bids"
 dynamic = ["version"]
 license = "MIT"
 authors = [{name = "Donisha Smith", email = "dsmit420@jhu.edu"}]
-description = "Toolkit for making MRI data BIDS compatible."
+description = "Post-hoc BIDS conversion toolkit for NIfTI datasets without original DICOMs."
 readme = "README.md"
 requires-python = ">=3.10.0"
 
@@ -47,19 +47,19 @@ dependencies = [
     ]
 
 [project.optional-dependencies]
-all = ["bidsprep[test]"]
+all = ["nifti2bids[test]"]
 test = ["pytest", "pytest-cov"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["bidsprep", "bidsprep.*"]
+include = ["nifti2bids", "nifti2bids.*"]
 
 [tool.coverage.report]
 show_missing = true
 
 [tool.coverage.run]
 branch = true
-source = ["bidsprep"]
+source = ["nifti2bids"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -69,10 +69,10 @@ python_files = ["test_*.py"]
 line-length = 88
 
 [project.urls]
-Homepage = "https://bidsprep.readthedocs.io"
-Github = "https://github.com/donishadsmith/bidsprep"
-Issues = "https://github.com/donishadsmith/bidsprep/issues"
-Changelog = "https://bidsprep.readthedocs.io/en/stable/changelog.html"
+Homepage = "https://nifti2bids.readthedocs.io"
+Github = "https://github.com/donishadsmith/nifti2bids"
+Issues = "https://github.com/donishadsmith/nifti2bids/issues"
+Changelog = "https://nifti2bids.readthedocs.io/en/stable/changelog.html"
 
 [bdist_wheel]
 universal = 1

@@ -1,6 +1,6 @@
 import glob, os
 import nibabel as nib, pytest
-import bidsprep.io as bids_io
+import nifti2bids.io as bids_io
 
 
 def test_compress_image(nifti_img_and_path):

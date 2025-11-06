@@ -1,11 +1,11 @@
 API
 ===
 
-:mod:`bidsprep.logger`
+:mod:`nifti2bids.logger`
 ---------------------------
 Module setting up a logger.
 
-.. currentmodule:: bidsprep.logger
+.. currentmodule:: nifti2bids.logger
 
 .. autosummary::
    :template: function.rst
@@ -15,11 +15,11 @@ Module setting up a logger.
    setup_logger
 
 
-:mod:`bidsprep.io`
+:mod:`nifti2bids.io`
 ---------------------------
 Module for input/output operations on NIfTI files and images.
 
-.. currentmodule:: bidsprep.io
+.. currentmodule:: nifti2bids.io
 
 .. autosummary::
    :template: function.rst
@@ -35,11 +35,11 @@ Module for input/output operations on NIfTI files and images.
    create_dataset_description
    save_dataset_description
 
-:mod:`bidsprep.utils`
+:mod:`nifti2bids.utils`
 ---------------------------
 Module containing utility functions.
 
-.. currentmodule:: bidsprep.utils
+.. currentmodule:: nifti2bids.utils
 
 .. autosummary::
    :template: function.rst

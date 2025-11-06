@@ -1,6 +1,6 @@
 import pytest
 
-from bidsprep._decorators import check_all_none
+from nifti2bids._decorators import check_all_none
 
 
 def test_check_all_none():

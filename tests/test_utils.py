@@ -1,6 +1,6 @@
 import os
 import nibabel as nib, numpy as np, pandas as pd, pytest
-import bidsprep.utils as bids_utils
+import nifti2bids.utils as bids_utils
 
 
 @pytest.mark.parametrize("return_header", (False, True))
@@ -43,8 +43,8 @@ def test_get_n_volumes(nifti_img_and_path):
     img, _ = nifti_img_and_path
     assert bids_utils.get_n_volumes(img) == 5
 
-    from bidsprep.simulate import simulate_nifti_image
-    from bidsprep._exceptions import DataDimensionError
+    from nifti2bids.simulate import simulate_nifti_image
+    from nifti2bids._exceptions import DataDimensionError
 
     with pytest.raises(DataDimensionError):
         bids_utils.get_n_volumes(simulate_nifti_image((10, 10, 10)))
@@ -52,7 +52,7 @@ def test_get_n_volumes(nifti_img_and_path):
 
 def test_get_n_slices(nifti_img_and_path):
     """Test for ``get_n_slices``."""
-    from bidsprep._exceptions import SliceAxisError
+    from nifti2bids._exceptions import SliceAxisError
 
     img, _ = nifti_img_and_path
     # Subtract one to convert to index
@@ -81,7 +81,7 @@ def test_get_tr(nifti_img_and_path):
 @pytest.mark.parametrize("slice_acquisition_method", ("sequential", "interleaved"))
 def test_create_slice_timing(slice_acquisition_method):
     """Test for ``create_slice_timing``."""
-    from bidsprep.simulate import simulate_nifti_image
+    from nifti2bids.simulate import simulate_nifti_image
 
     img = simulate_nifti_image((10, 10, 4, 10))
     img.header["pixdim"][4] = 2
@@ -145,7 +145,7 @@ def test_create_slice_timing(slice_acquisition_method):
 
 def test_is_3d_img(nifti_img_and_path):
     """Test for ``is_3d_img``."""
-    from bidsprep.simulate import simulate_nifti_image
+    from nifti2bids.simulate import simulate_nifti_image
 
     img = simulate_nifti_image((10, 10, 10))
     assert bids_utils.is_3d_img(img)

@@ -1,7 +1,7 @@
 import os, tempfile
 import nibabel as nib, pytest
 
-from bidsprep.simulate import simulate_nifti_image
+from nifti2bids.simulate import simulate_nifti_image
 
 
 @pytest.fixture(autouse=False, scope="function")

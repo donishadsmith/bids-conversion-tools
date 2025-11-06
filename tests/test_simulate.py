@@ -1,6 +1,6 @@
 import nibabel as nib, numpy as np, pytest
 
-from bidsprep.simulate import create_affine, simulate_nifti_image
+from nifti2bids.simulate import create_affine, simulate_nifti_image
 
 
 def test_create_affine():

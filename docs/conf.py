@@ -14,14 +14,14 @@ from github_link import make_linkcode_resolve
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "bidsprep"
-copyright = "2025, BIDSPrep Developers"
+project = "nifti2bids"
+copyright = "2025, nifti2bids Developers"
 author = "Donisha Smith"
 
-import bidsprep
+import nifti2bids
 
 # The full version, including alpha/beta/rc tags
-release = bidsprep.__version__
+release = nifti2bids.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -71,6 +71,6 @@ html_static_path = ["_static"]
 
 # The following is used by sphinx.ext.linkcode to provide links to github
 linkcode_resolve = make_linkcode_resolve(
-    "bidsprep",
-    "https://github.com/donishadsmith/bidsprep/blob/{revision}/{package}/{path}#L{lineno}",
+    "nifti2bids",
+    "https://github.com/donishadsmith/nifti2bids/blob/{revision}/{package}/{path}#L{lineno}",
 )

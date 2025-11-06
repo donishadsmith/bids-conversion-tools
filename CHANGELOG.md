@@ -1,12 +1,13 @@
 # Changelog
 
-Documentation of changes for each version of ``BIDSPrep``.
+Documentation of changes for each version of ``Nifti2Bids``.
 
 ## [0.0.8] - 2025-11-05
 - Change function and parameter names ending in "dim" to "axis"
 - Change custom exception name
 - Add new function to infer task based on number of volumes
 - Add level parameter to ``setup_logger``
+- Rename package from ``BidsPrep`` to ``Nifti2Bids``
 
 ## [0.0.7] - 2025-11-05
 - Add  ``get_n_volumes`` function and change custom exceptions names
