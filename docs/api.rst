@@ -58,3 +58,4 @@ Module containing utility functions.
    get_date_from_filename
    create_participant_tsv
    get_entity_value
+   infer_task_from_image
