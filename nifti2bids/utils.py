@@ -284,6 +284,7 @@ def _create_interleaved_order(
 def create_slice_timing(
     nifti_file_or_img: str | nib.nifti1.Nifti1Image,
     slice_acquisition_method: Literal["sequential", "interleaved"],
+    slice_axis: Literal["x", "y", "z"] = None,
     ascending: bool = True,
     interleaved_order: Literal["even_first", "odd_first"] = "odd_first",
 ) -> list[float]:
@@ -298,6 +299,11 @@ def create_slice_timing(
 
     slice_acquisition_method: :obj:`Literal["sequential", "interleaved"]`
         Method used for acquiring slices.
+
+    slice_axis: :obj:`Literal["x", "y", "z"]` or :obj:`None`, default=None
+        Axis the image slices were collected in. If None,
+        determines the slice axis using metadata ("slice_end")
+        from the NIfTI header.
 
     ascending: :obj:`bool`, default=True
         If slices were collected in ascending order (True) or descending
@@ -322,7 +328,7 @@ def create_slice_timing(
     }
 
     tr = get_tr(nifti_file_or_img)
-    n_slices = get_n_slices(nifti_file_or_img)
+    n_slices = get_n_slices(nifti_file_or_img, slice_axis)
 
     slice_duration = tr / n_slices
     kwargs = {"n_slices": n_slices, "ascending": ascending}

@@ -2,6 +2,9 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.0.9] - 2025-11-05
+- Add ``slice_axis`` parameter to ``create_slice_timing``
+
 ## [0.0.8] - 2025-11-05
 - Change function and parameter names ending in "dim" to "axis"
 - Change custom exception name
