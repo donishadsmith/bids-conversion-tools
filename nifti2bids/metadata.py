@@ -3,12 +3,12 @@
 import datetime, os, re
 from typing import Any, Literal, Optional
 
-import nibabel as nib, numpy as np, pandas as pd
+import nibabel as nib, numpy as np
 
 from ._exceptions import SliceAxisError, DataDimensionError
 from ._decorators import check_all_none
-from .io import load_nifti, get_nifti_header, glob_contents
-from .logger import setup_logger
+from .io import load_nifti, get_nifti_header
+from .logging import setup_logger
 
 LGR = setup_logger(__name__)
 
@@ -418,7 +418,7 @@ def is_valid_date(date_str: str, date_fmt: str) -> bool:
 
     Example
     -------
-    >>> from nifti2bids.utils import is_valid_date
+    >>> from nifti2bids.metadata import is_valid_date
     >>> is_valid_date("241010", "%y%m%d")
         True
     """
@@ -451,7 +451,7 @@ def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
 
     Example
     -------
-    >>> from nifti2bids.utils import get_date_from_filename
+    >>> from nifti2bids.metadata import get_date_from_filename
     >>> get_date_from_filename("101_240820_mprage_32chan.nii", "%y%m%d")
         "240820"
     """
@@ -467,22 +467,6 @@ def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
             break
 
     return date_str
-
-
-def create_participant_tsv(bids_dir: str) -> None:
-    """
-    Creates a participant TSV file.
-
-    Parameters
-    ----------
-    bids_dir: :obj:`str`
-        The BIDS compliant directory.
-    """
-    participants = [
-        os.path.basename(folder) for folder in glob_contents(bids_dir, "*sub-*")
-    ]
-    df = pd.DataFrame({"participant_id": participants})
-    df.to_csv(os.path.join(bids_dir, "participants.tsv"), sep="\t", index=None)
 
 
 def get_entity_value(filename: str, entity: str) -> str | None:
@@ -504,7 +488,7 @@ def get_entity_value(filename: str, entity: str) -> str | None:
 
     Example
     -------
-    >>> from nifti2bids.utils import get_entity_value
+    >>> from nifti2bids.metadata import get_entity_value
     >>> get_entity_value("sub-01_task-flanker_bold.nii.gz", "task")
         "flanker"
     """
@@ -536,7 +520,7 @@ def infer_task_from_image(
     Example
     -------
     >>> from nifti2bids.io import simulate_nifti_image
-    >>> from nifti2bids.utils import infer_task_from_image
+    >>> from nifti2bids.metadata import infer_task_from_image
     >>> img = simulate_nifti_image((100, 100, 100, 260))
     >>> volume_to_task_map = {300: "flanker", 260: "nback"}
     >>> infer_task_from_image(img, volume_to_task_map)

@@ -1,5 +1,5 @@
 import glob, os
-import nibabel as nib, pytest
+import nibabel as nib, pandas as pd, pytest
 import nifti2bids.io as bids_io
 
 
@@ -46,54 +46,3 @@ def test_get_nifti_affine(nifti_img_and_path):
     """Test for ``get_nifti_affine``."""
     img, _ = nifti_img_and_path
     assert bids_io.get_nifti_affine(img).shape == (4, 4)
-
-
-@pytest.mark.parametrize("dst_dir, remove_src_file", ([None, True], [True, False]))
-def test_create_bids_file(nifti_img_and_path, tmp_dir, dst_dir, remove_src_file):
-    """Test for ``create_bids_file``."""
-    _, img_path = nifti_img_and_path
-    dst_dir = None if not dst_dir else os.path.join(tmp_dir.name, "test")
-    if dst_dir:
-        os.makedirs(dst_dir)
-
-    bids_filename = bids_io.create_bids_file(
-        img_path,
-        subj_id="01",
-        desc="bold",
-        remove_src_file=remove_src_file,
-        dst_dir=dst_dir,
-        return_bids_filename=True,
-    )
-    assert bids_filename
-    assert os.path.basename(bids_filename) == "sub-01_bold.nii"
-
-    if dst_dir:
-        dst_file = glob.glob(os.path.join(dst_dir, "*nii"))[0]
-        assert os.path.basename(dst_file) == "sub-01_bold.nii"
-
-        src_file = glob.glob(os.path.join(os.path.dirname(img_path), "*.nii"))[0]
-        assert os.path.basename(src_file) == "img.nii"
-    else:
-        files = glob.glob(os.path.join(os.path.dirname(img_path), "*.nii"))
-        assert len(files) == 1
-        assert os.path.basename(files[0]) == "sub-01_bold.nii"
-
-
-def test_create_dataset_description():
-    """Test for ``create_dataset_description``."""
-    dataset_desc = bids_io.create_dataset_description(
-        dataset_name="test", bids_version="1.2.0"
-    )
-    assert dataset_desc.get("Name") == "test"
-    assert dataset_desc.get("BIDSVersion") == "1.2.0"
-
-
-def test_save_dataset_description(tmp_dir):
-    """Test for ``save_dataset_description``."""
-    dataset_desc = bids_io.create_dataset_description(
-        dataset_name="test", bids_version="1.2.0"
-    )
-    bids_io.save_dataset_description(dataset_desc, tmp_dir.name)
-    files = glob.glob(os.path.join(tmp_dir.name, "*.json"))
-    assert len(files) == 1
-    assert os.path.basename(files[0]) == "dataset_description.json"

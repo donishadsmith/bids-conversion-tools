@@ -2,6 +2,12 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.1.0] - 2025-11-06
+- Change utils module name to metadata
+- Change logger module name to logging
+- Create new bids module and move ``create_bids_file``, ``create_dataset_description``, ``save_dataset_description``, and ``create_participant_tsv`` to it
+- Add ``save_df`` and ``return_df`` parameters to ``create_participant_tsv``
+
 ## [0.0.9] - 2025-11-05
 - Add ``slice_axis`` parameter to ``create_slice_timing``
 
