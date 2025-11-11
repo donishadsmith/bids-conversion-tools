@@ -17,4 +17,4 @@ metadata -- Operations related to extracting metadata information from NIfTI ima
 simulate -- Simulate a basic NIfTI image for testing purposes
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

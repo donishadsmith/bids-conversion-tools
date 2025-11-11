@@ -1,4 +1,4 @@
-"""Utility functions to extract metadata."""
+"""Utility functions to extract or create metadata."""
 
 import datetime, os, re
 from typing import Any, Literal, Optional
@@ -250,10 +250,12 @@ def _create_sequential_order(n_slices: int, ascending: bool = True) -> list[int]
 def _create_interleaved_order(
     n_slices: int,
     ascending: bool = True,
-    interleaved_order: Literal["even_first", "odd_first"] = "odd_first",
+    interleaved_start: Literal["even", "odd"] = "odd",
 ) -> list[int]:
     """
     Create index ordering for interleaved acquisition method.
+
+    .. note:: Equivalent to Philips default order.
 
     Parameters
     ----------
@@ -264,16 +266,19 @@ def _create_interleaved_order(
         If slices were collected in ascending order (True) or descending
         order (False).
 
-    interleaved_order: :obj:`Literal["even_first", "odd_first"]`, default="odd_first"
+    interleaved_start: :obj:`Literal["even", "odd"]`, default="odd"
         If slices for interleaved acquisition were collected
-        by acquiring the "even_first" or "odd_first" slices first.
+        by acquiring the "even" or "odd" slices first.
 
     Returns
     -------
     list[int]
         The order of the slices.
     """
-    if interleaved_order == "odd_first":
+    if interleaved_start not in ["even", "odd"]:
+        raise ValueError("``interleaved_start`` must be either 'even' or 'odd'.")
+
+    if interleaved_start == "odd":
         slice_order = list(range(0, n_slices, 2)) + list(range(1, n_slices, 2))
     else:
         slice_order = list(range(1, n_slices, 2)) + list(range(0, n_slices, 2))
@@ -281,24 +286,242 @@ def _create_interleaved_order(
     return _flip_slice_order(slice_order, ascending)
 
 
+def _create_interleaved_sqrt_step_order(n_slices: int, ascending: bool = True):
+    """
+    Create index ordering for interleaved square root acquisition method.
+    In this method, slices are acquired by a step factor equivalent to
+    the rounded square root of the total slices.
+
+    .. note:: This acquisition method is Philip's interleaved order.
+
+    Parameters
+    ----------
+    n_slices: :obj:`int`
+        The number of slices.
+
+    ascending: :obj:`bool`, default=True
+        If slices were collected in ascending order (True) or descending
+        order (False).
+
+    Returns
+    -------
+    list[int]
+        The order of the slices.
+    """
+    slice_order = []
+    step = round(np.sqrt(n_slices))
+    for slice_indx in range(step):
+        slice_order.extend(list(range(slice_indx, n_slices, step)))
+
+    return _flip_slice_order(slice_order, ascending)
+
+
+def _create_singleband_timing(tr: float | int, slice_order: list[int]) -> list[float]:
+    """
+    Create singleband timing based on slice order.
+
+    Parameters
+    ----------
+    tr: :obj:`float` or :obj:`int`
+        Repetition time in seconds.
+
+    slice_order: :obj:`list[int]`
+        Order of the slices.
+
+    Returns
+    -------
+    list[float]
+        Ordered slice timing information.
+    """
+    n_slices = len(slice_order)
+    slice_duration = tr / n_slices
+    slice_timing = np.linspace(0, tr - slice_duration, n_slices)
+    # Pair slice with timing then sort dict
+    sorted_slice_timing = dict(
+        sorted({k: v for k, v in zip(slice_order, slice_timing.tolist())}.items())
+    )
+
+    return list(sorted_slice_timing.values())
+
+
+def _generate_sequence(
+    start: int, n_count: int, step: int, ascending: bool
+) -> list[int]:
+    """
+    Generate a sequence of numbers.
+
+    Parameters
+    ----------
+    start: :obj:`int`
+        Starting number.
+
+    n_count: :obj:`int`
+        The amount of numbers to generate.
+
+    step: :obj:`int`
+        Step size between numbers.
+
+    ascending: :obj:`int`
+        If numbers are ascending or descending relative to ``start``.
+
+    Returns:
+        list[int]
+            The sequence list.
+    """
+    if ascending:
+        stop = start + n_count * step
+        return np.arange(start, stop, step).tolist()
+    else:
+        stop = start - n_count * step
+        return np.arange(start, stop, -step).tolist()
+
+
+def _create_multiband_slice_groupings(
+    slice_order: list[int], multiband_factor: int, n_time_steps: int, ascending: bool
+) -> list[tuple[int, int]]:
+    """
+    Create slice groupings for multiband based on ``multiband_factor``.
+
+    Parameters
+    ----------
+    slice_order: :obj:`list[int]`
+        Order of the slices from single slice acquisition.
+
+    multiband_factor: :obj:`int`
+        The multiband acceleration factor, which is the number of slices
+        acquired simultaneously during multislice acquistion.
+
+    n_time_steps: :obj:`int`
+        The number of time steps computed by dividing the number of slices
+        by the multiband factor.
+
+    Returns
+    -------
+    list[tuple[int, int]]
+        A list of tuples containing the binned slice indices
+
+    Example
+    -------
+    >>> from nifti2bids.metadata import _create_mutiband_timing
+    >>> slice_order = [0, 2, 4, 6, 8, 1, 3, 5, 7, 9] # interleaved order
+    >>> _create_mutiband_timing(slice_order, multiband_factor=2, n_time_steps=5, ascending=True)
+    >>> [(0, 5), (2, 7), (4, 9), (1, 6), (3, 8)]
+    """
+    slice_groupings = []
+    for slice_indx in slice_order:
+        if not any(
+            slice_indx in multiband_group for multiband_group in slice_groupings
+        ):
+            # Prevents invalid slice groupings
+            # which produce values outside of possible range
+            sequence = _generate_sequence(
+                slice_indx, multiband_factor, n_time_steps, ascending
+            )
+            if max(sequence) >= len(slice_order) or min(sequence) < 0:
+                continue
+
+            slice_groupings.append(tuple(sequence))
+
+    return slice_groupings
+
+
+def _create_multiband_timing(
+    tr: float | int, slice_order: list[int], multiband_factor: int, ascending: bool
+) -> list[float]:
+    """
+    Create multiband timing based on slice order.
+
+    Parameters
+    ----------
+    tr: :obj:`float` or :obj:`int`
+        Repetition time in seconds.
+
+    slice_order: :obj:`list[int]`
+        Order of the slices from single slice acquisition.
+
+    multiband_factor: :obj:`int`
+        The multiband acceleration factor, which is the number of slices
+        acquired simultaneously during multislice acquisition.
+
+    ascending: :obj:`bool`, default=True
+        If slices were collected in ascending order (True) or descending
+        order (False).
+
+    Returns
+    -------
+    list[float]
+        Ordered slice timing information for multiband acquisition.
+
+    Example
+    -------
+    >>> from nifti2bids.metadata import _create_mutiband_timing
+    >>> slice_order = [0, 2, 4, 6, 8, 1, 3, 5, 7, 9] # interleaved order
+    >>> _create_mutiband_timing(0.8, slice_order, multiband_factor=2, ascending=True)
+    >>> [0.0, 0.48, 0.16, 0.64, 0.32, 0.0, 0.48, 0.16, 0.64, 0.32]
+    >>> # slices grouping: [[0, 5], [2, 7], [4, 9], [1, 6], [3, 8]]
+    """
+    n_slices = len(slice_order)
+    if n_slices % multiband_factor != 0:
+        raise ValueError(
+            f"Number of slices ({n_slices}) must be evenly divisible by "
+            f"multiband factor ({multiband_factor})."
+        )
+
+    # Step corresponds to number of unique slice timings and the index step size
+    n_time_steps = n_slices // multiband_factor
+    slice_duration = tr / n_time_steps
+    unique_slice_timings = np.linspace(0, tr - slice_duration, n_time_steps)
+    slice_timing = np.zeros(n_slices)
+
+    slice_groupings = _create_multiband_slice_groupings(
+        slice_order, multiband_factor, n_time_steps, ascending
+    )
+    for time_indx, multiband_group in enumerate(slice_groupings):
+        slice_timing[list(multiband_group)] = unique_slice_timings[time_indx]
+
+    return slice_timing.tolist()
+
+
 def create_slice_timing(
     nifti_file_or_img: str | nib.nifti1.Nifti1Image,
-    slice_acquisition_method: Literal["sequential", "interleaved"],
-    slice_axis: Literal["x", "y", "z"] = None,
+    tr: Optional[float | int] = None,
+    slice_axis: Optional[Literal["x", "y", "z"]] = None,
+    slice_acquisition_method: Literal[
+        "sequential", "interleaved", "interleaved_sqrt_step"
+    ] = "interleaved",
     ascending: bool = True,
-    interleaved_order: Literal["even_first", "odd_first"] = "odd_first",
+    interleaved_start: Literal["even", "odd"] = "odd",
+    multiband_factor: Optional[int] = None,
 ) -> list[float]:
     """
     Create slice timing dictionary mapping the slice index to its
     acquisition time.
+
+    .. important::
+        Multiband grouping is primarily based on based on
+        Philip's ordering for multiband acquisition for different
+        slice acquisition methods. For more information refer to the
+        `University of Washington Diagnostic Imaging Sciences Center Technical Notes
+        <https://depts.washington.edu/mrlab/technotes/fmri.shtml>`_.
 
     Parameters
     ----------
     nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
-    slice_acquisition_method: :obj:`Literal["sequential", "interleaved"]`
+    tr: :obj:`float` or :obj:`int`
+        Repetition time in seconds. If None, the repetition time is
+        extracted from the NIfTI header.
+
+    slice_acquisition_method: :obj:`Literal["sequential", "interleaved", "interleaved_sqrt_step"]`, default="interleaved"
         Method used for acquiring slices.
+
+        .. note::
+           "interleaved" is the common interleaving pattern (e.g [0, 2, 4, 6, 1, 3, 5, 7]),
+           which is also equivalent to Philip's "default". The "interleaved_sqrt_step"
+           is an method where slices are acquired by a step factor equivalent
+           to the rounded square root of the total slices (this method is Philip's "interleaved"
+           mode).
 
     slice_axis: :obj:`Literal["x", "y", "z"]` or :obj:`None`, default=None
         Axis the image slices were collected in. If None,
@@ -309,41 +532,53 @@ def create_slice_timing(
         If slices were collected in ascending order (True) or descending
         order (False).
 
-    interleaved_order: :obj:`Literal["even_first", "odd_first"]`, default="odd_first"
+    interleaved_start: :obj:`Literal["even", "odd"]`, default="odd"
         If slices for interleaved acquisition were collected
-        by acquiring the "even_first" or "odd_first" slices first.
+        by acquiring the "even" or "odd" slices first.
+
+        .. important:: Only used when ``slice_acquisition_method="interleaved"``.
+
+    multiband_factor: :obj:`int` or :obj:`None`, default == None
+        The multiband acceleration factor, which is the number of slices
+        acquired simultaneously during multislice acquisition. Slice
+        ordering is created using a step factor equivalent to
+        ``n_slices / multiband_factor``. For instance, if ``n_slices`` is
+        12 and ``slice_acquisition_method`` is "interleaved" with
+        ``multiband_factor`` of 3, then the traditional interleaved
+        order using the "odd" first ascending pattern is [0, 2, 4, 6, 8, 10,
+        1, 3, 5, 7, 9, 11]. This order is then grouped into sets of 3
+        with a step of 4 (12 slices divided by multiband factor of 3),
+        resulting in slice groups: (0, 4, 8), (2, 6, 10), (1, 5, 9), (3, 7, 11).
+        The final slice timing order is [0, 4, 8, 2, 6, 10, 1, 5, 9, 3, 7, 11].
 
     Returns
     -------
     list[float]
         List containing the slice timing acquisition.
     """
-    if interleaved_order not in ["odd_first", "even_first"]:
-        raise ValueError(
-            "``interleaved_order`` must be either 'odd_first' or 'even_first'."
-        )
     slice_ordering_func = {
         "sequential": _create_sequential_order,
         "interleaved": _create_interleaved_order,
+        "interleaved_sqrt_step": _create_interleaved_sqrt_step_order,
     }
 
-    tr = get_tr(nifti_file_or_img)
     n_slices = get_n_slices(nifti_file_or_img, slice_axis)
 
-    slice_duration = tr / n_slices
     kwargs = {"n_slices": n_slices, "ascending": ascending}
-
     if slice_acquisition_method == "interleaved":
-        kwargs.update({"interleaved_order": interleaved_order})
+        kwargs.update({"interleaved_start": interleaved_start})
 
     slice_order = slice_ordering_func[slice_acquisition_method](**kwargs)
-    slice_timing = np.linspace(0, tr - slice_duration, n_slices)
-    # Pair slice with timing then sort dict
-    sorted_slice_timing = dict(
-        sorted({k: v for k, v in zip(slice_order, slice_timing.tolist())}.items())
-    )
+    tr = tr if tr else get_tr(nifti_file_or_img)
+    kwargs = {"tr": tr, "slice_order": slice_order}
 
-    return list(sorted_slice_timing.values())
+    return (
+        _create_singleband_timing(**kwargs)
+        if not multiband_factor
+        else _create_multiband_timing(
+            multiband_factor=multiband_factor, ascending=ascending, **kwargs
+        )
+    )
 
 
 def is_3d_img(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> bool:

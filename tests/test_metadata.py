@@ -77,9 +77,11 @@ def test_get_tr(nifti_img_and_path):
         bids_meta.get_tr(img)
 
 
-@pytest.mark.parametrize("slice_acquisition_method", ("sequential", "interleaved"))
-def test_create_slice_timing(slice_acquisition_method):
-    """Test for ``create_slice_timing``."""
+@pytest.mark.parametrize(
+    "slice_acquisition_method", ("sequential", "interleaved", "interleaved_sqrt_step")
+)
+def test_create_slice_timing_singleband(slice_acquisition_method):
+    """Test for ``create_slice_timing`` for singleband acquisition."""
     from nifti2bids.simulate import simulate_nifti_image
 
     img = simulate_nifti_image((10, 10, 4, 10))
@@ -100,12 +102,12 @@ def test_create_slice_timing(slice_acquisition_method):
             ascending=False,
         )
         assert slice_timing_dict == [1.5, 1, 0.5, 0]
-    else:
+    elif slice_acquisition_method == "interleaved":
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             slice_acquisition_method=slice_acquisition_method,
             ascending=True,
-            interleaved_order="odd_first",
+            interleaved_start="odd",
         )
         assert slice_timing_dict == [0, 1, 0.5, 1.5]
 
@@ -113,7 +115,7 @@ def test_create_slice_timing(slice_acquisition_method):
             nifti_file_or_img=img,
             slice_acquisition_method=slice_acquisition_method,
             ascending=False,
-            interleaved_order="odd_first",
+            interleaved_start="odd",
         )
         assert slice_timing_dict == [1.5, 0.5, 1, 0]
 
@@ -121,7 +123,7 @@ def test_create_slice_timing(slice_acquisition_method):
             nifti_file_or_img=img,
             slice_acquisition_method=slice_acquisition_method,
             ascending=True,
-            interleaved_order="even_first",
+            interleaved_start="even",
         )
         assert slice_timing_dict == [1, 0, 1.5, 0.5]
 
@@ -129,16 +131,110 @@ def test_create_slice_timing(slice_acquisition_method):
             nifti_file_or_img=img,
             slice_acquisition_method=slice_acquisition_method,
             ascending=False,
-            interleaved_order="even_first",
+            interleaved_start="even",
         )
         assert slice_timing_dict == [0.5, 1.5, 0, 1]
+
+        with pytest.raises(ValueError):
+            slice_timing_dict = bids_meta.create_slice_timing(
+                nifti_file_or_img=img,
+                slice_acquisition_method=slice_acquisition_method,
+                ascending=False,
+                interleaved_start="incorrect_value",
+            )
+    else:
+        slice_timing_dict = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            slice_acquisition_method=slice_acquisition_method,
+            ascending=True,
+        )
+        assert slice_timing_dict == [0, 1, 0.5, 1.5]
+
+        slice_timing_dict = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            slice_acquisition_method=slice_acquisition_method,
+            ascending=False,
+        )
+        assert slice_timing_dict == [1.5, 0.5, 1, 0]
+
+
+@pytest.mark.parametrize(
+    "slice_acquisition_method", ("sequential", "interleaved", "interleaved_sqrt_step")
+)
+def test_create_slice_timing_multiband(slice_acquisition_method):
+    """Test for ``create_slice_timing`` for multiband acquisition."""
+    from nifti2bids.simulate import simulate_nifti_image
+
+    img = simulate_nifti_image((12, 12, 10, 12))
+    img.header["pixdim"][4] = 2
+    img.header["slice_end"] = 9
+
+    if slice_acquisition_method == "sequential":
+        slice_timing_dict = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            slice_acquisition_method=slice_acquisition_method,
+            ascending=True,
+            multiband_factor=2,
+        )
+        assert np.allclose(
+            slice_timing_dict, [0.0, 0.4, 0.8, 1.2, 1.6, 0.0, 0.4, 0.8, 1.2, 1.6]
+        )
+
+        slice_timing_dict = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            slice_acquisition_method=slice_acquisition_method,
+            ascending=False,
+            multiband_factor=2,
+        )
+        assert np.allclose(
+            slice_timing_dict, [1.6, 1.2, 0.8, 0.4, 0.0, 1.6, 1.2, 0.8, 0.4, 0.0]
+        )
+    elif slice_acquisition_method == "interleaved":
+        slice_timing_dict = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            slice_acquisition_method=slice_acquisition_method,
+            ascending=True,
+            multiband_factor=2,
+        )
+        assert np.allclose(
+            slice_timing_dict, [0.0, 1.2, 0.4, 1.6, 0.8, 0.0, 1.2, 0.4, 1.6, 0.8]
+        )
+
+        slice_timing_dict = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            slice_acquisition_method=slice_acquisition_method,
+            ascending=False,
+            multiband_factor=2,
+        )
+        assert np.allclose(
+            slice_timing_dict, [0.8, 1.6, 0.4, 1.2, 0.0, 0.8, 1.6, 0.4, 1.2, 0.0]
+        )
+    else:
+        slice_timing_dict = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            slice_acquisition_method=slice_acquisition_method,
+            ascending=True,
+            multiband_factor=2,
+        )
+        assert np.allclose(
+            slice_timing_dict, [0.0, 0.8, 1.6, 0.4, 1.2, 0.0, 0.8, 1.6, 0.4, 1.2]
+        )
+
+        slice_timing_dict = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            slice_acquisition_method=slice_acquisition_method,
+            ascending=False,
+            multiband_factor=2,
+        )
+        assert np.allclose(
+            slice_timing_dict, [0.4, 1.6, 0.8, 0.0, 1.2, 0.4, 1.6, 0.8, 0.0, 1.2]
+        )
 
     with pytest.raises(ValueError):
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             slice_acquisition_method=slice_acquisition_method,
-            ascending=False,
-            interleaved_order="odds_first",
+            multiband_factor=3,
         )
 
 
