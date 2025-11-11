@@ -269,12 +269,12 @@ def _create_interleaved_order(
     interleave_pattern: :obj:`Literal["even", "odd", "philips"]`, default="odd"
         If slices for interleaved acquisition were collected by acquiring the
         "even" or "odd" slices first. For "philips" (the interleaved implementation
-        by Philip's), slices are acquired by a step factor equivalent to the rounded
+        by Philips'), slices are acquired by a step factor equivalent to the rounded
         square root of the total slices.
         mode).
 
         .. important::
-           Philip's "default" mode is equivalent to "interleave" with the pattern
+           Philips' "default" mode is equivalent to "interleave" with the pattern
            set to "odd", and ascending set to True.
 
     Returns
@@ -361,7 +361,11 @@ def _generate_sequence(
 
 
 def _create_multiband_slice_groupings(
-    slice_order: list[int], multiband_factor: int, n_time_steps: int, ascending: bool
+    slice_order: list[int],
+    multiband_factor: int,
+    n_time_steps: int,
+    n_fake_slices: int,
+    ascending: bool,
 ) -> list[tuple[int, int]]:
     """
     Create slice groupings for multiband based on ``multiband_factor``.
@@ -379,6 +383,14 @@ def _create_multiband_slice_groupings(
         The number of time steps computed by dividing the number of slices
         by the multiband factor.
 
+    n_fake_slices: :obj:`int`
+        The number of fake slices added to make total slices divisible
+        by the multiband factor.
+
+    ascending: :obj:`bool`, default=True
+        If slices were collected in ascending order (True) or descending
+        order (False).
+
     Returns
     -------
     list[tuple[int, int]]
@@ -391,26 +403,39 @@ def _create_multiband_slice_groupings(
     >>> _create_mutiband_timing(slice_order, multiband_factor=2, n_time_steps=5, ascending=True)
     >>> [(0, 5), (2, 7), (4, 9), (1, 6), (3, 8)]
     """
+    n_real_slices = len(slice_order) - n_fake_slices
     slice_groupings = []
-    for slice_indx in slice_order:
-        if not any(
-            slice_indx in multiband_group for multiband_group in slice_groupings
-        ):
-            # Prevents invalid slice groupings
-            # which produce values outside of possible range
-            sequence = _generate_sequence(
-                slice_indx, multiband_factor, n_time_steps, ascending
-            )
-            if max(sequence) >= len(slice_order) or min(sequence) < 0:
+    for slice_idx in slice_order:
+        if any(slice_idx in group for group in slice_groupings):
+            continue
+
+        sequence = _generate_sequence(
+            slice_idx, multiband_factor, n_time_steps, ascending
+        )
+
+        if max(sequence) >= n_real_slices or min(sequence) < 0:
+            if n_fake_slices:
+                sequence = [val for val in sequence if val < n_real_slices]
+            else:
                 continue
 
+        # If list is empty due to sequence filtering from n_fake_slices case
+        # then continue
+        if not sequence:
+            continue
+
+        if sequence:
             slice_groupings.append(tuple(sequence))
 
     return slice_groupings
 
 
 def _create_multiband_timing(
-    tr: float | int, slice_order: list[int], multiband_factor: int, ascending: bool
+    tr: float | int,
+    slice_order: list[int],
+    n_fake_slices: int,
+    multiband_factor: int,
+    ascending: bool,
 ) -> list[float]:
     """
     Create multiband timing based on slice order.
@@ -422,6 +447,10 @@ def _create_multiband_timing(
 
     slice_order: :obj:`list[int]`
         Order of the slices from single slice acquisition.
+
+    n_fake_slices: :obj:`int`
+        The number of fake slices added to make total slices divisible
+        by the multiband factor.
 
     multiband_factor: :obj:`int`
         The multiband acceleration factor, which is the number of slices
@@ -445,21 +474,17 @@ def _create_multiband_timing(
     >>> # slices grouping: [[0, 5], [2, 7], [4, 9], [1, 6], [3, 8]]
     """
     n_slices = len(slice_order)
-    if n_slices % multiband_factor != 0:
-        raise ValueError(
-            f"Number of slices ({n_slices}) must be evenly divisible by "
-            f"multiband factor ({multiband_factor})."
-        )
 
     # Step corresponds to number of unique slice timings and the index step size
     n_time_steps = n_slices // multiband_factor
     slice_duration = tr / n_time_steps
     unique_slice_timings = np.linspace(0, tr - slice_duration, n_time_steps)
-    slice_timing = np.zeros(n_slices)
+    slice_timing = np.zeros((n_slices - n_fake_slices))
 
     slice_groupings = _create_multiband_slice_groupings(
-        slice_order, multiband_factor, n_time_steps, ascending
+        slice_order, multiband_factor, n_time_steps, n_fake_slices, ascending
     )
+
     for time_indx, multiband_group in enumerate(slice_groupings):
         slice_timing[list(multiband_group)] = unique_slice_timings[time_indx]
 
@@ -478,13 +503,6 @@ def create_slice_timing(
     """
     Create slice timing dictionary mapping the slice index to its
     acquisition time.
-
-    .. important::
-        Multiband grouping is primarily based on based on
-        Philip's ordering for multiband acquisition for different
-        slice acquisition methods. For more information refer to the
-        `University of Washington Diagnostic Imaging Sciences Center Technical Notes
-        <https://depts.washington.edu/mrlab/technotes/fmri.shtml>`_.
 
     Parameters
     ----------
@@ -505,9 +523,9 @@ def create_slice_timing(
 
         .. note::
            "interleaved" is the common interleaving pattern (e.g [0, 2, 4, 6, 1, 3, 5, 7]),
-           which is also equivalent to Philip's "default". The "interleaved_sqrt_step"
+           which is also equivalent to Philips' "default". The "interleaved_sqrt_step"
            is an method where slices are acquired by a step factor equivalent
-           to the rounded square root of the total slices (this method is Philip's "interleaved"
+           to the rounded square root of the total slices (this method is Philips' "interleaved"
            mode).
 
     ascending: :obj:`bool`, default=True
@@ -517,12 +535,12 @@ def create_slice_timing(
     interleave_pattern: :obj:`Literal["even", "odd", "philips"]`, default="odd"
         If slices for interleaved acquisition were collected by acquiring the
         "even" or "odd" slices first. For "philips" (the interleaved implementation
-        by Philip's), slices are acquired by a step factor equivalent to the rounded
+        by Philips'), slices are acquired by a step factor equivalent to the rounded
         square root of the total slices.
         mode).
 
         .. important::
-           Philip's "default" mode is equivalent to "interleave" with the pattern
+           Philips' "default" mode is equivalent to "interleave" with the pattern
            set to "odd", and ascending set to True.
 
     multiband_factor: :obj:`int` or :obj:`None`, default == None
@@ -537,6 +555,28 @@ def create_slice_timing(
         with a step of 4 (12 slices divided by multiband factor of 3),
         resulting in slice groups: (0, 4, 8), (2, 6, 10), (1, 5, 9), (3, 7, 11).
         The final slice timing order is [0, 4, 8, 2, 6, 10, 1, 5, 9, 3, 7, 11].
+
+        .. important::
+            - Multiband grouping is primarily based on based on
+              Philip's ordering for multiband acquisition for different
+              slice acquisition methods. For more information refer to the
+              `University of Washington Diagnostic Imaging Sciences Center Technical Notes
+              <https://depts.washington.edu/mrlab/technotes/fmri.shtml>`_.
+
+            ** Indivisible Multiband Factor**:
+            - When pattern is not set to "philips", then for cases where the number
+              of slices is indivisible by the ``multiband_factor``, the total slice
+              count is padded to the next highest integer evenly divisible
+              by the factor. The slice ordering and groupings are generated based on
+              this new count, and any non-existent "fake" slices are automatically filtered
+              out from these groupings. For instance, if ``n_slices=10`` and ``multiband_factor=3``,
+              then the slice order is based on ceil(10 / 3) = 4 -> ``n_slices = 4 * 3`` (12 slices).
+              Then 4 timesteps are used to create the following slice order groupings:
+              (0, 4, 8), (1, 5, 9), (2, 6, 10), (3, 7, 11). Finally, the "fake" slices
+              (10 and 11) are filtered out and the final slice order groupings are
+              (0, 4, 8), (1, 5, 9), (2, 6), and (3, 7). This method is based on
+              `GE's Slice Timing Info Guide
+              <https://raw.githubusercontent.com/mr-jaemin/ge-mri/main/doc/GEHC_fMRI_Slice_Timing_Info.pdf>`_.
 
     Returns
     -------
@@ -556,7 +596,28 @@ def create_slice_timing(
 
     n_slices = get_n_slices(nifti_file_or_img, slice_axis)
 
-    acquisition_kwargs = {"n_slices": n_slices, "ascending": ascending}
+    # Calculate fake slices needed for multiband only for even/odd pattern
+    # GE implementation of indivisible multiband:
+    # https://raw.githubusercontent.com/mr-jaemin/ge-mri/main/doc/GEHC_fMRI_Slice_Timing_Info.pdf
+    n_fake_slices = 0
+    if multiband_factor and n_slices % multiband_factor != 0:
+        if acquisition == "interleaved" and interleave_pattern == "philips":
+            raise ValueError(
+                f"For 'philips' interleave pattern with multiband, the number "
+                f"of slices ({n_slices}) must be evenly divisible by the "
+                f"multiband factor ({multiband_factor})."
+            )
+
+        LGR.warning(
+            f"Number of slices ({n_slices}) is not divisible by the"
+            f"multiband factor ({multiband_factor})"
+        )
+
+        n_timepoints = int(np.ceil(n_slices / multiband_factor))
+        n_fake_slices = (n_timepoints * multiband_factor) - n_slices
+
+    total_slices = n_slices + n_fake_slices
+    acquisition_kwargs = {"n_slices": total_slices, "ascending": ascending}
     if acquisition == "interleaved":
         acquisition_kwargs.update({"interleave_pattern": interleave_pattern})
 
@@ -568,7 +629,10 @@ def create_slice_timing(
         _create_singleband_timing(**band_kwargs)
         if not multiband_factor
         else _create_multiband_timing(
-            multiband_factor=multiband_factor, ascending=ascending, **band_kwargs
+            multiband_factor=multiband_factor,
+            ascending=ascending,
+            n_fake_slices=n_fake_slices,
+            **band_kwargs,
         )
     )
 

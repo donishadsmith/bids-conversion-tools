@@ -2,6 +2,10 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.1.3] - 2025-11-11
+- Add logic for indivisible multiband factor for all cases except for philips
+interleaved pattern
+
 ## [0.1.2] - 2025-11-11
 - Inspired by the following article to write better code: https://pmc.ncbi.nlm.nih.gov/articles/PMC5274797/
     - Essentially add Philip's as an interleave pattern while only retaining sequential or interleave for acquisition

@@ -87,70 +87,70 @@ def test_create_slice_timing_singleband(acquisition):
     img.header["slice_end"] = 3
 
     if acquisition == "sequential":
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
         )
-        assert slice_timing_dict == [0, 0.5, 1, 1.5]
+        assert slice_timing_list == [0, 0.5, 1, 1.5]
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=False,
         )
-        assert slice_timing_dict == [1.5, 1, 0.5, 0]
+        assert slice_timing_list == [1.5, 1, 0.5, 0]
     else:
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
             interleave_pattern="odd",
         )
-        assert slice_timing_dict == [0, 1, 0.5, 1.5]
+        assert slice_timing_list == [0, 1, 0.5, 1.5]
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=False,
             interleave_pattern="odd",
         )
-        assert slice_timing_dict == [1.5, 0.5, 1, 0]
+        assert slice_timing_list == [1.5, 0.5, 1, 0]
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
             interleave_pattern="even",
         )
-        assert slice_timing_dict == [1, 0, 1.5, 0.5]
+        assert slice_timing_list == [1, 0, 1.5, 0.5]
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=False,
             interleave_pattern="even",
         )
-        assert slice_timing_dict == [0.5, 1.5, 0, 1]
+        assert slice_timing_list == [0.5, 1.5, 0, 1]
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
             interleave_pattern="philips",
         )
-        assert slice_timing_dict == [0, 1, 0.5, 1.5]
+        assert slice_timing_list == [0, 1, 0.5, 1.5]
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=False,
             interleave_pattern="philips",
         )
-        assert slice_timing_dict == [1.5, 0.5, 1, 0]
+        assert slice_timing_list == [1.5, 0.5, 1, 0]
 
         with pytest.raises(ValueError):
-            slice_timing_dict = bids_meta.create_slice_timing(
+            slice_timing_list = bids_meta.create_slice_timing(
                 nifti_file_or_img=img,
                 acquisition=acquisition,
                 ascending=False,
@@ -168,27 +168,27 @@ def test_create_slice_timing_multiband(acquisition):
     img.header["slice_end"] = 9
 
     if acquisition == "sequential":
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
             multiband_factor=2,
         )
         assert np.allclose(
-            slice_timing_dict, [0.0, 0.4, 0.8, 1.2, 1.6, 0.0, 0.4, 0.8, 1.2, 1.6]
+            slice_timing_list, [0.0, 0.4, 0.8, 1.2, 1.6, 0.0, 0.4, 0.8, 1.2, 1.6]
         )
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=False,
             multiband_factor=2,
         )
         assert np.allclose(
-            slice_timing_dict, [1.6, 1.2, 0.8, 0.4, 0.0, 1.6, 1.2, 0.8, 0.4, 0.0]
+            slice_timing_list, [1.6, 1.2, 0.8, 0.4, 0.0, 1.6, 1.2, 0.8, 0.4, 0.0]
         )
     else:
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
@@ -196,10 +196,10 @@ def test_create_slice_timing_multiband(acquisition):
             multiband_factor=2,
         )
         assert np.allclose(
-            slice_timing_dict, [0.0, 1.2, 0.4, 1.6, 0.8, 0.0, 1.2, 0.4, 1.6, 0.8]
+            slice_timing_list, [0.0, 1.2, 0.4, 1.6, 0.8, 0.0, 1.2, 0.4, 1.6, 0.8]
         )
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             interleave_pattern="odd",
@@ -207,10 +207,10 @@ def test_create_slice_timing_multiband(acquisition):
             multiband_factor=2,
         )
         assert np.allclose(
-            slice_timing_dict, [0.8, 1.6, 0.4, 1.2, 0.0, 0.8, 1.6, 0.4, 1.2, 0.0]
+            slice_timing_list, [0.8, 1.6, 0.4, 1.2, 0.0, 0.8, 1.6, 0.4, 1.2, 0.0]
         )
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
@@ -218,10 +218,10 @@ def test_create_slice_timing_multiband(acquisition):
             multiband_factor=2,
         )
         assert np.allclose(
-            slice_timing_dict, [0.8, 0.0, 1.2, 0.4, 1.6, 0.8, 0.0, 1.2, 0.4, 1.6]
+            slice_timing_list, [0.8, 0.0, 1.2, 0.4, 1.6, 0.8, 0.0, 1.2, 0.4, 1.6]
         )
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             interleave_pattern="even",
@@ -229,10 +229,10 @@ def test_create_slice_timing_multiband(acquisition):
             multiband_factor=2,
         )
         assert np.allclose(
-            slice_timing_dict, [1.6, 0.4, 1.2, 0.0, 0.8, 1.6, 0.4, 1.2, 0.0, 0.8]
+            slice_timing_list, [1.6, 0.4, 1.2, 0.0, 0.8, 1.6, 0.4, 1.2, 0.0, 0.8]
         )
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
@@ -240,10 +240,10 @@ def test_create_slice_timing_multiband(acquisition):
             multiband_factor=2,
         )
         assert np.allclose(
-            slice_timing_dict, [0.0, 0.8, 1.6, 0.4, 1.2, 0.0, 0.8, 1.6, 0.4, 1.2]
+            slice_timing_list, [0.0, 0.8, 1.6, 0.4, 1.2, 0.0, 0.8, 1.6, 0.4, 1.2]
         )
 
-        slice_timing_dict = bids_meta.create_slice_timing(
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=False,
@@ -251,14 +251,105 @@ def test_create_slice_timing_multiband(acquisition):
             multiband_factor=2,
         )
         assert np.allclose(
-            slice_timing_dict, [0.4, 1.6, 0.8, 0.0, 1.2, 0.4, 1.6, 0.8, 0.0, 1.2]
+            slice_timing_list, [0.4, 1.6, 0.8, 0.0, 1.2, 0.4, 1.6, 0.8, 0.0, 1.2]
         )
 
-    with pytest.raises(ValueError):
-        slice_timing_dict = bids_meta.create_slice_timing(
+        with pytest.raises(ValueError):
+            slice_timing_list = bids_meta.create_slice_timing(
+                nifti_file_or_img=img,
+                acquisition=acquisition,
+                interleave_pattern="philips",
+                multiband_factor=3,
+            )
+
+
+@pytest.mark.parametrize("acquisition", ("sequential", "interleaved"))
+def test_create_slice_timing_multiband_indivisible(acquisition):
+    """
+    Test for ``create_slice_timing`` for multiband acquisition with
+    indivisible multiband factor.
+    """
+    from nifti2bids.simulate import simulate_nifti_image
+
+    img = simulate_nifti_image((12, 12, 10, 12))
+    img.header["pixdim"][4] = 2
+    img.header["slice_end"] = 9
+
+    if acquisition == "sequential":
+        slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
+            ascending=True,
             multiband_factor=3,
+        )
+        # 4 time steps: [0.0, 0.5, 1.0, 1.5]
+        # Groups : (0, 4, 8), (1, 5, 9), (2, 6), (3, 7)
+        assert np.allclose(
+            slice_timing_list, [0.0, 0.5, 1.0, 1.5, 0.0, 0.5, 1.0, 1.5, 0.0, 0.5]
+        )
+
+        slice_timing_list = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            acquisition=acquisition,
+            ascending=False,
+            multiband_factor=3,
+        )
+        # Order: 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+        # Groups: (7, 3), (6, 2), (9, 5, 1), (8, 4, 0)
+        assert np.allclose(
+            slice_timing_list, [1.5, 1.0, 0.5, 0.0, 1.5, 1.0, 0.5, 0.0, 1.5, 1.0]
+        )
+    else:
+        slice_timing_list = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            acquisition=acquisition,
+            ascending=True,
+            interleave_pattern="odd",
+            multiband_factor=3,
+        )
+        # Order: 0, 2, 4, 6, 8, 10, 1, 3, 5, 7, 9, 11
+        # Groups: (0, 4, 8), (2, 6), (1, 5, 9), (3, 7)
+        assert np.allclose(
+            slice_timing_list, [0.0, 1.0, 0.5, 1.5, 0.0, 1.0, 0.5, 1.5, 0.0, 1.0]
+        )
+
+        slice_timing_list = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            acquisition=acquisition,
+            interleave_pattern="odd",
+            ascending=False,
+            multiband_factor=3,
+        )
+        # Order: 11, 9, 7, 5, 3, 1, 10, 8, 6, 4, 2, 0
+        # Groups: (7, 3), (9, 5, 1), (6, 2), (8, 4, 0)
+        assert np.allclose(
+            slice_timing_list, [1.5, 0.5, 1.0, 0.0, 1.5, 0.5, 1.0, 0.0, 1.5, 0.5]
+        )
+
+        slice_timing_list = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            acquisition=acquisition,
+            ascending=True,
+            interleave_pattern="even",
+            multiband_factor=3,
+        )
+        # Order: 1, 3, 5, 7, 9, 11, 0, 2, 4, 6, 8, 10
+        # Groups: (1, 5, 9), (3, 7), (0, 4, 8), (2, 6)
+        assert np.allclose(
+            slice_timing_list, [1.0, 0.0, 1.5, 0.5, 1.0, 0.0, 1.5, 0.5, 1.0, 0.0]
+        )
+
+        slice_timing_list = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            acquisition=acquisition,
+            interleave_pattern="even",
+            ascending=False,
+            multiband_factor=3,
+        )
+        # Order: 10, 8, 6, 4, 2, 0, 11, 9, 7, 5, 3, 1
+        # Groups: (6, 2), (8, 4, 0), (7, 3), (9, 5, 1)
+        assert np.allclose(
+            slice_timing_list, [0.5, 1.5, 0.0, 1.0, 0.5, 1.5, 0.0, 1.0, 0.5, 1.5]
         )
 
 
