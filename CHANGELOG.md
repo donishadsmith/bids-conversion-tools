@@ -4,7 +4,7 @@ Documentation of changes for each version of ``Nifti2Bids``.
 
 ## [0.1.1] - 2025-11-10
 - Add Philip's specific interleaved order and multiband slice acquisition
-- Other paramete name changes
+- Other parameter name changes
 
 ## [0.1.0] - 2025-11-06
 - Change utils module name to metadata
