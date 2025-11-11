@@ -2,6 +2,11 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.1.2] - 2025-11-11
+- Inspired by the following article to write better code: https://pmc.ncbi.nlm.nih.gov/articles/PMC5274797/
+    - Essentially add Philip's as an interleave pattern while only retaining sequential or interleave for acquisition
+- Some parameter name changing
+
 ## [0.1.1] - 2025-11-10
 - Add Philip's specific interleaved order and multiband slice acquisition
 - Other parameter name changes

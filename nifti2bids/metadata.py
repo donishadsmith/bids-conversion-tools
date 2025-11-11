@@ -250,7 +250,7 @@ def _create_sequential_order(n_slices: int, ascending: bool = True) -> list[int]
 def _create_interleaved_order(
     n_slices: int,
     ascending: bool = True,
-    interleaved_start: Literal["even", "odd"] = "odd",
+    interleave_pattern: Literal["even", "odd", "philips"] = "odd",
 ) -> list[int]:
     """
     Create index ordering for interleaved acquisition method.
@@ -266,52 +266,36 @@ def _create_interleaved_order(
         If slices were collected in ascending order (True) or descending
         order (False).
 
-    interleaved_start: :obj:`Literal["even", "odd"]`, default="odd"
-        If slices for interleaved acquisition were collected
-        by acquiring the "even" or "odd" slices first.
+    interleave_pattern: :obj:`Literal["even", "odd", "philips"]`, default="odd"
+        If slices for interleaved acquisition were collected by acquiring the
+        "even" or "odd" slices first. For "philips" (the interleaved implementation
+        by Philip's), slices are acquired by a step factor equivalent to the rounded
+        square root of the total slices.
+        mode).
+
+        .. important::
+           Philip's "default" mode is equivalent to "interleave" with the pattern
+           set to "odd", and ascending set to True.
 
     Returns
     -------
     list[int]
         The order of the slices.
     """
-    if interleaved_start not in ["even", "odd"]:
-        raise ValueError("``interleaved_start`` must be either 'even' or 'odd'.")
+    if interleave_pattern not in ["even", "odd", "philips"]:
+        raise ValueError(
+            "``interleaved_start`` must be either 'even', 'odd', or 'philips'."
+        )
 
-    if interleaved_start == "odd":
+    if interleave_pattern == "odd":
         slice_order = list(range(0, n_slices, 2)) + list(range(1, n_slices, 2))
-    else:
+    elif interleave_pattern == "even":
         slice_order = list(range(1, n_slices, 2)) + list(range(0, n_slices, 2))
-
-    return _flip_slice_order(slice_order, ascending)
-
-
-def _create_interleaved_sqrt_step_order(n_slices: int, ascending: bool = True):
-    """
-    Create index ordering for interleaved square root acquisition method.
-    In this method, slices are acquired by a step factor equivalent to
-    the rounded square root of the total slices.
-
-    .. note:: This acquisition method is Philip's interleaved order.
-
-    Parameters
-    ----------
-    n_slices: :obj:`int`
-        The number of slices.
-
-    ascending: :obj:`bool`, default=True
-        If slices were collected in ascending order (True) or descending
-        order (False).
-
-    Returns
-    -------
-    list[int]
-        The order of the slices.
-    """
-    slice_order = []
-    step = round(np.sqrt(n_slices))
-    for slice_indx in range(step):
-        slice_order.extend(list(range(slice_indx, n_slices, step)))
+    else:
+        slice_order = []
+        step = round(np.sqrt(n_slices))
+        for slice_indx in range(step):
+            slice_order.extend(list(range(slice_indx, n_slices, step)))
 
     return _flip_slice_order(slice_order, ascending)
 
@@ -486,11 +470,9 @@ def create_slice_timing(
     nifti_file_or_img: str | nib.nifti1.Nifti1Image,
     tr: Optional[float | int] = None,
     slice_axis: Optional[Literal["x", "y", "z"]] = None,
-    slice_acquisition_method: Literal[
-        "sequential", "interleaved", "interleaved_sqrt_step"
-    ] = "interleaved",
+    acquisition: Literal["sequential", "interleaved"] = "interleaved",
     ascending: bool = True,
-    interleaved_start: Literal["even", "odd"] = "odd",
+    interleave_pattern: Literal["even", "odd", "philips"] = "odd",
     multiband_factor: Optional[int] = None,
 ) -> list[float]:
     """
@@ -513,7 +495,12 @@ def create_slice_timing(
         Repetition time in seconds. If None, the repetition time is
         extracted from the NIfTI header.
 
-    slice_acquisition_method: :obj:`Literal["sequential", "interleaved", "interleaved_sqrt_step"]`, default="interleaved"
+    slice_axis: :obj:`Literal["x", "y", "z"]` or :obj:`None`, default=None
+        Axis the image slices were collected in. If None,
+        determines the slice axis using metadata ("slice_end")
+        from the NIfTI header.
+
+    acquisition :obj:`Literal["sequential", "interleaved"]`, default="interleaved"
         Method used for acquiring slices.
 
         .. note::
@@ -523,20 +510,20 @@ def create_slice_timing(
            to the rounded square root of the total slices (this method is Philip's "interleaved"
            mode).
 
-    slice_axis: :obj:`Literal["x", "y", "z"]` or :obj:`None`, default=None
-        Axis the image slices were collected in. If None,
-        determines the slice axis using metadata ("slice_end")
-        from the NIfTI header.
-
     ascending: :obj:`bool`, default=True
         If slices were collected in ascending order (True) or descending
         order (False).
 
-    interleaved_start: :obj:`Literal["even", "odd"]`, default="odd"
-        If slices for interleaved acquisition were collected
-        by acquiring the "even" or "odd" slices first.
+    interleave_pattern: :obj:`Literal["even", "odd", "philips"]`, default="odd"
+        If slices for interleaved acquisition were collected by acquiring the
+        "even" or "odd" slices first. For "philips" (the interleaved implementation
+        by Philip's), slices are acquired by a step factor equivalent to the rounded
+        square root of the total slices.
+        mode).
 
-        .. important:: Only used when ``slice_acquisition_method="interleaved"``.
+        .. important::
+           Philip's "default" mode is equivalent to "interleave" with the pattern
+           set to "odd", and ascending set to True.
 
     multiband_factor: :obj:`int` or :obj:`None`, default == None
         The multiband acceleration factor, which is the number of slices
@@ -555,28 +542,33 @@ def create_slice_timing(
     -------
     list[float]
         List containing the slice timing acquisition.
+
+    Referenes
+    ---------
+    Parker, David, et al. "Optimal Slice Timing Correction and Its Interaction with
+    FMRI Parameters and Artifacts." Medical Image Analysis, vol. 35, Jan. 2017, pp. 434–445,
+    https://doi.org/10.1016/j.media.2016.08.006. Accessed 28 Jan. 2022.
     """
     slice_ordering_func = {
         "sequential": _create_sequential_order,
         "interleaved": _create_interleaved_order,
-        "interleaved_sqrt_step": _create_interleaved_sqrt_step_order,
     }
 
     n_slices = get_n_slices(nifti_file_or_img, slice_axis)
 
-    kwargs = {"n_slices": n_slices, "ascending": ascending}
-    if slice_acquisition_method == "interleaved":
-        kwargs.update({"interleaved_start": interleaved_start})
+    acquisition_kwargs = {"n_slices": n_slices, "ascending": ascending}
+    if acquisition == "interleaved":
+        acquisition_kwargs.update({"interleave_pattern": interleave_pattern})
 
-    slice_order = slice_ordering_func[slice_acquisition_method](**kwargs)
+    slice_order = slice_ordering_func[acquisition](**acquisition_kwargs)
     tr = tr if tr else get_tr(nifti_file_or_img)
-    kwargs = {"tr": tr, "slice_order": slice_order}
+    band_kwargs = {"tr": tr, "slice_order": slice_order}
 
     return (
-        _create_singleband_timing(**kwargs)
+        _create_singleband_timing(**band_kwargs)
         if not multiband_factor
         else _create_multiband_timing(
-            multiband_factor=multiband_factor, ascending=ascending, **kwargs
+            multiband_factor=multiband_factor, ascending=ascending, **band_kwargs
         )
     )
 

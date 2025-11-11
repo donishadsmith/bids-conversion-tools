@@ -77,10 +77,8 @@ def test_get_tr(nifti_img_and_path):
         bids_meta.get_tr(img)
 
 
-@pytest.mark.parametrize(
-    "slice_acquisition_method", ("sequential", "interleaved", "interleaved_sqrt_step")
-)
-def test_create_slice_timing_singleband(slice_acquisition_method):
+@pytest.mark.parametrize("acquisition", ("sequential", "interleaved"))
+def test_create_slice_timing_singleband(acquisition):
     """Test for ``create_slice_timing`` for singleband acquisition."""
     from nifti2bids.simulate import simulate_nifti_image
 
@@ -88,80 +86,80 @@ def test_create_slice_timing_singleband(slice_acquisition_method):
     img.header["pixdim"][4] = 2
     img.header["slice_end"] = 3
 
-    if slice_acquisition_method == "sequential":
+    if acquisition == "sequential":
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=True,
         )
         assert slice_timing_dict == [0, 0.5, 1, 1.5]
 
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=False,
         )
         assert slice_timing_dict == [1.5, 1, 0.5, 0]
-    elif slice_acquisition_method == "interleaved":
+    else:
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=True,
-            interleaved_start="odd",
+            interleave_pattern="odd",
         )
         assert slice_timing_dict == [0, 1, 0.5, 1.5]
 
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=False,
-            interleaved_start="odd",
+            interleave_pattern="odd",
         )
         assert slice_timing_dict == [1.5, 0.5, 1, 0]
 
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=True,
-            interleaved_start="even",
+            interleave_pattern="even",
         )
         assert slice_timing_dict == [1, 0, 1.5, 0.5]
 
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=False,
-            interleaved_start="even",
+            interleave_pattern="even",
         )
         assert slice_timing_dict == [0.5, 1.5, 0, 1]
 
-        with pytest.raises(ValueError):
-            slice_timing_dict = bids_meta.create_slice_timing(
-                nifti_file_or_img=img,
-                slice_acquisition_method=slice_acquisition_method,
-                ascending=False,
-                interleaved_start="incorrect_value",
-            )
-    else:
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=True,
+            interleave_pattern="philips",
         )
         assert slice_timing_dict == [0, 1, 0.5, 1.5]
 
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=False,
+            interleave_pattern="philips",
         )
         assert slice_timing_dict == [1.5, 0.5, 1, 0]
 
+        with pytest.raises(ValueError):
+            slice_timing_dict = bids_meta.create_slice_timing(
+                nifti_file_or_img=img,
+                acquisition=acquisition,
+                ascending=False,
+                interleave_pattern="incorrect_value",
+            )
 
-@pytest.mark.parametrize(
-    "slice_acquisition_method", ("sequential", "interleaved", "interleaved_sqrt_step")
-)
-def test_create_slice_timing_multiband(slice_acquisition_method):
+
+@pytest.mark.parametrize("acquisition", ("sequential", "interleaved"))
+def test_create_slice_timing_multiband(acquisition):
     """Test for ``create_slice_timing`` for multiband acquisition."""
     from nifti2bids.simulate import simulate_nifti_image
 
@@ -169,10 +167,10 @@ def test_create_slice_timing_multiband(slice_acquisition_method):
     img.header["pixdim"][4] = 2
     img.header["slice_end"] = 9
 
-    if slice_acquisition_method == "sequential":
+    if acquisition == "sequential":
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=True,
             multiband_factor=2,
         )
@@ -182,18 +180,19 @@ def test_create_slice_timing_multiband(slice_acquisition_method):
 
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=False,
             multiband_factor=2,
         )
         assert np.allclose(
             slice_timing_dict, [1.6, 1.2, 0.8, 0.4, 0.0, 1.6, 1.2, 0.8, 0.4, 0.0]
         )
-    elif slice_acquisition_method == "interleaved":
+    else:
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=True,
+            interleave_pattern="odd",
             multiband_factor=2,
         )
         assert np.allclose(
@@ -202,18 +201,42 @@ def test_create_slice_timing_multiband(slice_acquisition_method):
 
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
+            interleave_pattern="odd",
             ascending=False,
             multiband_factor=2,
         )
         assert np.allclose(
             slice_timing_dict, [0.8, 1.6, 0.4, 1.2, 0.0, 0.8, 1.6, 0.4, 1.2, 0.0]
         )
-    else:
+
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=True,
+            interleave_pattern="even",
+            multiband_factor=2,
+        )
+        assert np.allclose(
+            slice_timing_dict, [0.8, 0.0, 1.2, 0.4, 1.6, 0.8, 0.0, 1.2, 0.4, 1.6]
+        )
+
+        slice_timing_dict = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            acquisition=acquisition,
+            interleave_pattern="even",
+            ascending=False,
+            multiband_factor=2,
+        )
+        assert np.allclose(
+            slice_timing_dict, [1.6, 0.4, 1.2, 0.0, 0.8, 1.6, 0.4, 1.2, 0.0, 0.8]
+        )
+
+        slice_timing_dict = bids_meta.create_slice_timing(
+            nifti_file_or_img=img,
+            acquisition=acquisition,
+            ascending=True,
+            interleave_pattern="philips",
             multiband_factor=2,
         )
         assert np.allclose(
@@ -222,8 +245,9 @@ def test_create_slice_timing_multiband(slice_acquisition_method):
 
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             ascending=False,
+            interleave_pattern="philips",
             multiband_factor=2,
         )
         assert np.allclose(
@@ -233,7 +257,7 @@ def test_create_slice_timing_multiband(slice_acquisition_method):
     with pytest.raises(ValueError):
         slice_timing_dict = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            slice_acquisition_method=slice_acquisition_method,
+            acquisition=acquisition,
             multiband_factor=3,
         )
 
