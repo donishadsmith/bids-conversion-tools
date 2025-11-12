@@ -250,7 +250,7 @@ def _create_sequential_order(n_slices: int, ascending: bool = True) -> list[int]
 def _create_interleaved_order(
     n_slices: int,
     ascending: bool = True,
-    interleave_pattern: Literal["even", "odd", "philips"] = "odd",
+    interleaved_pattern: Literal["even", "odd", "philips"] = "odd",
 ) -> list[int]:
     """
     Create index ordering for interleaved acquisition method.
@@ -266,7 +266,7 @@ def _create_interleaved_order(
         If slices were collected in ascending order (True) or descending
         order (False).
 
-    interleave_pattern: :obj:`Literal["even", "odd", "philips"]`, default="odd"
+    interleaved_pattern: :obj:`Literal["even", "odd", "philips"]`, default="odd"
         If slices for interleaved acquisition were collected by acquiring the
         "even" or "odd" slices first. For "philips" (the interleaved implementation
         by Philips'), slices are acquired by a step factor equivalent to the rounded
@@ -282,14 +282,14 @@ def _create_interleaved_order(
     list[int]
         The order of the slices.
     """
-    if interleave_pattern not in ["even", "odd", "philips"]:
+    if interleaved_pattern not in ["even", "odd", "philips"]:
         raise ValueError(
             "``interleaved_start`` must be either 'even', 'odd', or 'philips'."
         )
 
-    if interleave_pattern == "odd":
+    if interleaved_pattern == "odd":
         slice_order = list(range(0, n_slices, 2)) + list(range(1, n_slices, 2))
-    elif interleave_pattern == "even":
+    elif interleaved_pattern == "even":
         slice_order = list(range(1, n_slices, 2)) + list(range(0, n_slices, 2))
     else:
         slice_order = []
@@ -497,7 +497,7 @@ def create_slice_timing(
     slice_axis: Optional[Literal["x", "y", "z"]] = None,
     acquisition: Literal["sequential", "interleaved"] = "interleaved",
     ascending: bool = True,
-    interleave_pattern: Literal["even", "odd", "philips"] = "odd",
+    interleaved_pattern: Literal["even", "odd", "philips"] = "odd",
     multiband_factor: Optional[int] = None,
 ) -> list[float]:
     """
@@ -532,7 +532,7 @@ def create_slice_timing(
         If slices were collected in ascending order (True) or descending
         order (False).
 
-    interleave_pattern: :obj:`Literal["even", "odd", "philips"]`, default="odd"
+    interleaved_pattern: :obj:`Literal["even", "odd", "philips"]`, default="odd"
         If slices for interleaved acquisition were collected by acquiring the
         "even" or "odd" slices first. For "philips" (the interleaved implementation
         by Philips'), slices are acquired by a step factor equivalent to the rounded
@@ -601,7 +601,7 @@ def create_slice_timing(
     # https://raw.githubusercontent.com/mr-jaemin/ge-mri/main/doc/GEHC_fMRI_Slice_Timing_Info.pdf
     n_fake_slices = 0
     if multiband_factor and n_slices % multiband_factor != 0:
-        if acquisition == "interleaved" and interleave_pattern == "philips":
+        if acquisition == "interleaved" and interleaved_pattern == "philips":
             raise ValueError(
                 f"For 'philips' interleave pattern with multiband, the number "
                 f"of slices ({n_slices}) must be evenly divisible by the "
@@ -619,7 +619,7 @@ def create_slice_timing(
     total_slices = n_slices + n_fake_slices
     acquisition_kwargs = {"n_slices": total_slices, "ascending": ascending}
     if acquisition == "interleaved":
-        acquisition_kwargs.update({"interleave_pattern": interleave_pattern})
+        acquisition_kwargs.update({"interleaved_pattern": interleaved_pattern})
 
     slice_order = slice_ordering_func[acquisition](**acquisition_kwargs)
     tr = tr if tr else get_tr(nifti_file_or_img)

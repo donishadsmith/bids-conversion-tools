@@ -2,6 +2,9 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.1.4] - 2025-11-12
+- Change parameter name from "interleave_pattern" to "interleaved_pattern"
+
 ## [0.1.3] - 2025-11-11
 - Add logic for indivisible multiband factor for all cases except for philips
 interleaved pattern

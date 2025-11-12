@@ -105,7 +105,7 @@ def test_create_slice_timing_singleband(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
-            interleave_pattern="odd",
+            interleaved_pattern="odd",
         )
         assert slice_timing_list == [0, 1, 0.5, 1.5]
 
@@ -113,7 +113,7 @@ def test_create_slice_timing_singleband(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=False,
-            interleave_pattern="odd",
+            interleaved_pattern="odd",
         )
         assert slice_timing_list == [1.5, 0.5, 1, 0]
 
@@ -121,7 +121,7 @@ def test_create_slice_timing_singleband(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
-            interleave_pattern="even",
+            interleaved_pattern="even",
         )
         assert slice_timing_list == [1, 0, 1.5, 0.5]
 
@@ -129,7 +129,7 @@ def test_create_slice_timing_singleband(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=False,
-            interleave_pattern="even",
+            interleaved_pattern="even",
         )
         assert slice_timing_list == [0.5, 1.5, 0, 1]
 
@@ -137,7 +137,7 @@ def test_create_slice_timing_singleband(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
-            interleave_pattern="philips",
+            interleaved_pattern="philips",
         )
         assert slice_timing_list == [0, 1, 0.5, 1.5]
 
@@ -145,7 +145,7 @@ def test_create_slice_timing_singleband(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=False,
-            interleave_pattern="philips",
+            interleaved_pattern="philips",
         )
         assert slice_timing_list == [1.5, 0.5, 1, 0]
 
@@ -154,7 +154,7 @@ def test_create_slice_timing_singleband(acquisition):
                 nifti_file_or_img=img,
                 acquisition=acquisition,
                 ascending=False,
-                interleave_pattern="incorrect_value",
+                interleaved_pattern="incorrect_value",
             )
 
 
@@ -192,7 +192,7 @@ def test_create_slice_timing_multiband(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
-            interleave_pattern="odd",
+            interleaved_pattern="odd",
             multiband_factor=2,
         )
         assert np.allclose(
@@ -202,7 +202,7 @@ def test_create_slice_timing_multiband(acquisition):
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
-            interleave_pattern="odd",
+            interleaved_pattern="odd",
             ascending=False,
             multiband_factor=2,
         )
@@ -214,7 +214,7 @@ def test_create_slice_timing_multiband(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
-            interleave_pattern="even",
+            interleaved_pattern="even",
             multiband_factor=2,
         )
         assert np.allclose(
@@ -224,7 +224,7 @@ def test_create_slice_timing_multiband(acquisition):
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
-            interleave_pattern="even",
+            interleaved_pattern="even",
             ascending=False,
             multiband_factor=2,
         )
@@ -236,7 +236,7 @@ def test_create_slice_timing_multiband(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
-            interleave_pattern="philips",
+            interleaved_pattern="philips",
             multiband_factor=2,
         )
         assert np.allclose(
@@ -247,7 +247,7 @@ def test_create_slice_timing_multiband(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=False,
-            interleave_pattern="philips",
+            interleaved_pattern="philips",
             multiband_factor=2,
         )
         assert np.allclose(
@@ -258,7 +258,7 @@ def test_create_slice_timing_multiband(acquisition):
             slice_timing_list = bids_meta.create_slice_timing(
                 nifti_file_or_img=img,
                 acquisition=acquisition,
-                interleave_pattern="philips",
+                interleaved_pattern="philips",
                 multiband_factor=3,
             )
 
@@ -304,7 +304,7 @@ def test_create_slice_timing_multiband_indivisible(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
-            interleave_pattern="odd",
+            interleaved_pattern="odd",
             multiband_factor=3,
         )
         # Order: 0, 2, 4, 6, 8, 10, 1, 3, 5, 7, 9, 11
@@ -316,7 +316,7 @@ def test_create_slice_timing_multiband_indivisible(acquisition):
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
-            interleave_pattern="odd",
+            interleaved_pattern="odd",
             ascending=False,
             multiband_factor=3,
         )
@@ -330,7 +330,7 @@ def test_create_slice_timing_multiband_indivisible(acquisition):
             nifti_file_or_img=img,
             acquisition=acquisition,
             ascending=True,
-            interleave_pattern="even",
+            interleaved_pattern="even",
             multiband_factor=3,
         )
         # Order: 1, 3, 5, 7, 9, 11, 0, 2, 4, 6, 8, 10
@@ -342,7 +342,7 @@ def test_create_slice_timing_multiband_indivisible(acquisition):
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
             acquisition=acquisition,
-            interleave_pattern="even",
+            interleaved_pattern="even",
             ascending=False,
             multiband_factor=3,
         )
