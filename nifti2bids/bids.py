@@ -89,7 +89,7 @@ def _strip_none_entities(bids_filename: str | Path) -> str:
 
     Parameters
     ----------
-    bids_filename:  :obj:`str` or :obj:`Path`
+    bids_filename: :obj:`str` or :obj:`Path`
         The BIDS filename.
 
     Returns
@@ -140,7 +140,7 @@ def create_dataset_description(dataset_name: str, bids_version: str = "1.0.0") -
 
 
 def save_dataset_description(
-    dataset_description: dict[str, str], dst_dir: Path
+    dataset_description: dict[str, str], dst_dir: str | Path
 ) -> None:
     """
     Save a dataset description dictionary.
@@ -153,7 +153,7 @@ def save_dataset_description(
     dataset_description: :obj:`dict`
         The dataset description dictionary.
 
-    dst_dir: :obj:`Path`
+    dst_dir: :obj:`str` or :obj:`Path`
         Path to save the JSON file to.
     """
     with open(Path(dst_dir) / "dataset_description.json", "w", encoding="utf-8") as f:
