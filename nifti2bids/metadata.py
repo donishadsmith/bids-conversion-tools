@@ -293,10 +293,12 @@ def _create_interleaved_order(
     elif interleaved_pattern == "even":
         slice_order = list(range(1, n_slices, 2)) + list(range(0, n_slices, 2))
     else:
-        slice_order = []
         step = round(np.sqrt(n_slices))
-        for slice_indx in range(step):
-            slice_order.extend(list(range(slice_indx, n_slices, step)))
+        slice_order = [
+            slice_indx
+            for base in range(step)
+            for slice_indx in range(base, n_slices, step)
+        ]
 
     return _flip_slice_order(slice_order, ascending)
 
