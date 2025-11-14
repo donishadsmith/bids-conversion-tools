@@ -4,7 +4,7 @@ Documentation of changes for each version of ``Nifti2Bids``.
 
 ## [0.1.6] - 2025-11-14
 - Typing and docs fixes, including change for ``create_affine`` to
-accept tuples and lists.
+accept tuples and lists
 
 ## [0.1.5] - 2025-11-13
 - Doc and type fixes plus accept Path objects

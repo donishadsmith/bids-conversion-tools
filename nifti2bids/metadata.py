@@ -401,9 +401,9 @@ def _create_multiband_slice_groupings(
 
     Example
     -------
-    >>> from nifti2bids.metadata import _create_mutiband_timing
+    >>> from nifti2bids.metadata import _create_multiband_slice_groupings
     >>> slice_order = [0, 2, 4, 6, 8, 1, 3, 5, 7, 9] # interleaved order
-    >>> _create_mutiband_timing(slice_order, multiband_factor=2, n_time_steps=5, ascending=True)
+    >>> _create_multiband_slice_groupings(slice_order, multiband_factor=2, step_size=5, ascending=True)
     >>> [(0, 5), (2, 7), (4, 9), (1, 6), (3, 8)]
     """
     n_real_slices = len(slice_order) - n_fake_slices
@@ -472,6 +472,8 @@ def _create_multiband_timing(
     >>> slice_order = [0, 2, 4, 6, 8, 1, 3, 5, 7, 9] # interleaved order
     >>> _create_mutiband_timing(0.8, slice_order, multiband_factor=2, ascending=True)
     >>> [0.0, 0.48, 0.16, 0.64, 0.32, 0.0, 0.48, 0.16, 0.64, 0.32]
+    >>> # Note step size in groupings = n_slices / multiband_factor (10 / 2)
+    >>> # also corresponds to number of unique slice timings
     >>> # slices grouping: [[0, 5], [2, 7], [4, 9], [1, 6], [3, 8]]
     """
     n_slices = len(slice_order)
