@@ -16,7 +16,7 @@ def create_bids_file(
     ses_id: Optional[str | int] = None,
     task_id: Optional[str] = None,
     run_id: Optional[str | int] = None,
-    dst_dir: Path = None,
+    dst_dir: str | Path = None,
     remove_src_file: bool = False,
     return_bids_filename: bool = False,
 ) -> Path | None:
@@ -46,7 +46,7 @@ def create_bids_file(
     run_id: :obj:`str` or :obj:`int` or :obj:`None`, default=None
         Run ID (i.e. 001, 1, etc). Optional entity.
 
-    dst_dir: :obj:`Path`, default=None
+    dst_dir: :obj:`str`, :obj:`Path`, or :obj:`None`, default=None
         Directory name to copy the BIDS file to. If None, then the
         BIDS file is copied to the same directory as
 
