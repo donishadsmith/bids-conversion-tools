@@ -36,7 +36,7 @@ def check_all_none(parameter_names: list[str]) -> Callable:
             )
 
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Callable:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             bound_args = signature.bind(*args, **kwargs)
             bound_args.apply_defaults()
             all_param_values = [bound_args.arguments[name] for name in parameter_names]
