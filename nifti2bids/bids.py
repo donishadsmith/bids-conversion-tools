@@ -1,6 +1,7 @@
 """Module for creating BIDS compliant files."""
 
-import os, json
+import json
+from pathlib import Path
 from typing import Optional
 
 import pandas as pd
@@ -9,22 +10,22 @@ from nifti2bids.io import _copy_file, glob_contents
 
 
 def create_bids_file(
-    nifti_file: str,
+    nifti_file: str | Path,
     subj_id: str | int,
     desc: str,
     ses_id: Optional[str | int] = None,
     task_id: Optional[str] = None,
     run_id: Optional[str | int] = None,
-    dst_dir: str = None,
+    dst_dir: Path = None,
     remove_src_file: bool = False,
     return_bids_filename: bool = False,
-) -> str | None:
+) -> Path | None:
     """
     Create a BIDS compliant filename with required and optional entities.
 
     Parameters
     ----------
-    nifti_file: :obj:`str`
+    nifti_file: :obj:`str` or :obj:`Path`
         Path to NIfTI image.
 
     sub_id: :obj:`str` or :obj:`int`
@@ -45,7 +46,7 @@ def create_bids_file(
     run_id: :obj:`str` or :obj:`int` or :obj:`None`, default=None
         Run ID (i.e. 001, 1, etc). Optional entity.
 
-    dst_dir: :obj:`str`, default=None
+    dst_dir: :obj:`Path`, default=None
         Directory name to copy the BIDS file to. If None, then the
         BIDS file is copied to the same directory as
 
@@ -57,7 +58,7 @@ def create_bids_file(
 
     Returns
     -------
-    None or str
+    Path or None
         If ``return_bids_filename`` is True, then the BIDS filename is
         returned.
 
@@ -69,12 +70,12 @@ def create_bids_file(
     bids_filename = f"sub-{subj_id}_ses-{ses_id}_task-{task_id}_" f"run-{run_id}_{desc}"
     bids_filename = _strip_none_entities(bids_filename)
 
-    ext = f"{nifti_file.partition('.')[-1]}"
+    ext = f"{str(nifti_file).partition('.')[-1]}"
     bids_filename += f"{ext}"
     bids_filename = (
-        os.path.join(os.path.dirname(nifti_file), bids_filename)
+        Path(nifti_file).parent / bids_filename
         if dst_dir is None
-        else os.path.join(dst_dir, bids_filename)
+        else Path(dst_dir) / bids_filename
     )
 
     _copy_file(nifti_file, bids_filename, remove_src_file)
@@ -82,13 +83,13 @@ def create_bids_file(
     return bids_filename if return_bids_filename else None
 
 
-def _strip_none_entities(bids_filename: str) -> str:
+def _strip_none_entities(bids_filename: str | Path) -> str:
     """
     Removes entities with None in a BIDS compliant filename.
 
     Parameters
     ----------
-    bids_filename: :obj:`str`
+    bids_filename:  :obj:`str` or :obj:`Path`
         The BIDS filename.
 
     Returns
@@ -103,7 +104,7 @@ def _strip_none_entities(bids_filename: str) -> str:
     >>> _strip_none_entities(bids_filename)
         "sub-101_task-flanker_bold.nii.gz"
     """
-    basename, _, ext = bids_filename.partition(".")
+    basename, _, ext = str(bids_filename).partition(".")
     retained_entities = [
         entity for entity in basename.split("_") if not entity.endswith("-None")
     ]
@@ -138,7 +139,9 @@ def create_dataset_description(dataset_name: str, bids_version: str = "1.0.0") -
     return {"Name": dataset_name, "BIDSVersion": bids_version}
 
 
-def save_dataset_description(dataset_description: dict[str, str], dst_dir: str) -> None:
+def save_dataset_description(
+    dataset_description: dict[str, str], dst_dir: Path
+) -> None:
     """
     Save a dataset description dictionary.
 
@@ -150,24 +153,22 @@ def save_dataset_description(dataset_description: dict[str, str], dst_dir: str) 
     dataset_description: :obj:`dict`
         The dataset description dictionary.
 
-    dst_dir: :obj:`str`
+    dst_dir: :obj:`Path`
         Path to save the JSON file to.
     """
-    with open(
-        os.path.join(dst_dir, "dataset_description.json"), "w", encoding="utf-8"
-    ) as f:
+    with open(Path(dst_dir) / "dataset_description.json", "w", encoding="utf-8") as f:
         json.dump(dataset_description, f)
 
 
 def create_participant_tsv(
-    bids_dir: str, save_df: bool = False, return_df: bool = True
+    bids_dir: str | Path, save_df: bool = False, return_df: bool = True
 ) -> pd.DataFrame | None:
     """
     Creates a basic participant dataframe for the "participants.tsv" file.
 
     Parameters
     ----------
-    bids_dir: :obj:`str`
+    bids_dir: :obj:`str` or :obj:`Path`
         The root of BIDS compliant directory.
 
     save_df: :obj:`bool`, bool=False
@@ -181,12 +182,10 @@ def create_participant_tsv(
     pd.DataFrame or None
         The dataframe if ``return_df`` is True.
     """
-    participants = [
-        os.path.basename(folder) for folder in glob_contents(bids_dir, "*sub-*")
-    ]
+    participants = [Path(folder).name for folder in glob_contents(bids_dir, "*sub-*")]
     df = pd.DataFrame({"participant_id": participants})
 
     if save_df:
-        df.to_csv(os.path.join(bids_dir, "participants.tsv"), sep="\t", index=None)
+        df.to_csv(Path(bids_dir) / "participants.tsv", sep="\t", index=None)
 
     return df if return_df else None

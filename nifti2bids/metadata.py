@@ -1,6 +1,7 @@
 """Utility functions to extract or create metadata."""
 
-import datetime, os, re
+import datetime, re
+from pathlib import Path
 from typing import Any, Literal, Optional
 
 import nibabel as nib, numpy as np
@@ -15,7 +16,7 @@ LGR = setup_logger(__name__)
 
 @check_all_none(parameter_names=["nifti_file_or_img", "nifti_header"])
 def determine_slice_axis(
-    nifti_file_or_img: Optional[str | nib.nifti1.Nifti1Image] = None,
+    nifti_file_or_img: Optional[str | Path | nib.nifti1.Nifti1Image] = None,
     nifti_header: Optional[nib.nifti1.Nifti1Header] = None,
 ) -> int:
     """
@@ -25,7 +26,7 @@ def determine_slice_axis(
 
     Parameters
     ----------
-    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`, default=None
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image` default=None
         Path to the NIfTI file or a NIfTI image. Must be specified
         if ``nifti_header`` is None.
 
@@ -58,7 +59,7 @@ def _is_numeric(value: Any) -> bool:
     return isinstance(value, (float, int))
 
 
-def _to_native_numeric(value):
+def _to_native_numeric(value: np.floating | np.int_) -> float | int:
     """
     Ensures numpy floats and integers are converted
     to regular Python floats and integers.
@@ -69,7 +70,7 @@ def _to_native_numeric(value):
 @check_all_none(parameter_names=["nifti_file_or_img", "nifti_header"])
 def get_hdr_metadata(
     metadata_name: str,
-    nifti_file_or_img: Optional[str | nib.nifti1.Nifti1Image] = None,
+    nifti_file_or_img: Optional[str | Path | nib.nifti1.Nifti1Image] = None,
     nifti_header: Optional[nib.nifti1.Nifti1Header] = None,
     return_header: bool = False,
 ) -> Any | tuple[Any, nib.nifti1.Nifti1Header]:
@@ -81,7 +82,7 @@ def get_hdr_metadata(
     metadata_name: :obj:`str`
         Name of the metadata field to return.
 
-    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`, default=None
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`, default=None
         Path to the NIfTI file or a NIfTI image. Must be specified
         if ``nifti_header`` is None.
 
@@ -94,7 +95,7 @@ def get_hdr_metadata(
 
     Returns
     -------
-    Any or tuple[Any, nibabel.nifti1.Nifti1Header]
+    Any or tuple[Any, Nifti1Header]
         If ``return_header`` is False, only returns the associated
         value of the metadata. If ``return_header`` is True returns
         a tuple containing the assoicated value of the metadata
@@ -111,13 +112,13 @@ def get_hdr_metadata(
     return metadata_value if not return_header else (metadata_value, hdr)
 
 
-def get_n_volumes(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> int:
+def get_n_volumes(nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image) -> int:
     """
     Get the number of volumes from a 4D NIftI image.
 
     Parameters
     ----------
-    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
     Returns
@@ -134,7 +135,7 @@ def get_n_volumes(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> int:
 
 
 def get_n_slices(
-    nifti_file_or_img: str | nib.nifti1.Nifti1Image,
+    nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
     slice_axis: Optional[Literal["x", "y", "z"]] = None,
 ) -> int:
     """
@@ -142,7 +143,7 @@ def get_n_slices(
 
     Parameters
     ----------
-    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
     slice_axis: :obj:`Literal["x", "y", "z"]` or :obj:`None`, default=None
@@ -179,13 +180,13 @@ def get_n_slices(
     return _to_native_numeric(n_slices)
 
 
-def get_tr(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> float:
+def get_tr(nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image) -> float:
     """
     Get the repetition time from the header of a NIfTI image.
 
     Parameters
     ----------
-    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
     Returns
@@ -203,7 +204,7 @@ def get_tr(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> float:
     return round(_to_native_numeric(tr), 2)
 
 
-def _flip_slice_order(slice_order, ascending: bool) -> list[int]:
+def _flip_slice_order(slice_order: list[int], ascending: bool) -> list[int]:
     """
     Flip slice index order.
 
@@ -492,7 +493,7 @@ def _create_multiband_timing(
 
 
 def create_slice_timing(
-    nifti_file_or_img: str | nib.nifti1.Nifti1Image,
+    nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
     tr: Optional[float | int] = None,
     slice_axis: Optional[Literal["x", "y", "z"]] = None,
     acquisition: Literal["sequential", "interleaved"] = "interleaved",
@@ -506,7 +507,7 @@ def create_slice_timing(
 
     Parameters
     ----------
-    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
     tr: :obj:`float` or :obj:`int`
@@ -637,13 +638,13 @@ def create_slice_timing(
     )
 
 
-def is_3d_img(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> bool:
+def is_3d_img(nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image) -> bool:
     """
     Determines if ``nifti_file_or_img`` is a 3D image.
 
     Parameters
     ----------
-    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
     Returns
@@ -655,7 +656,7 @@ def is_3d_img(nifti_file_or_img: str | nib.nifti1.Nifti1Image) -> bool:
 
 
 def get_scanner_info(
-    nifti_file_or_img: str | nib.nifti1.Nifti1Image,
+    nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
 ) -> tuple[str, str]:
     """
     Determines the manufacturer and model name of scanner.
@@ -667,7 +668,7 @@ def get_scanner_info(
 
     Parameters
     ----------
-    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
     Returns
@@ -699,7 +700,7 @@ def is_valid_date(date_str: str, date_fmt: str) -> bool:
     date_str: :obj:`str`
         The string to be validated.
 
-    date_fmt:
+    date_fmt: :obj:`str`
         The expected format of the date.
 
     Return
@@ -720,7 +721,7 @@ def is_valid_date(date_str: str, date_fmt: str) -> bool:
         return False
 
 
-def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
+def get_date_from_filename(filename: str | Path, date_fmt: str) -> str | None:
     """
     Get date from filename.
 
@@ -728,10 +729,10 @@ def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
 
     Parameters
     ----------
-    filename: :obj:`str`
+    filename: :obj:`str` or :obj:`Path`
         The absolute path or name of file.
 
-    date_fmt:
+    date_fmt: :obj:`str`
         The expected format of the date.
 
     Returns
@@ -748,7 +749,7 @@ def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
     """
     split_pattern = "|".join(map(re.escape, ["_", "-", " "]))
 
-    basename = os.path.basename(filename)
+    basename = Path(filename).name
     split_basename = re.split(split_pattern, basename)
 
     date_str = None
@@ -760,13 +761,13 @@ def get_date_from_filename(filename: str, date_fmt: str) -> str | None:
     return date_str
 
 
-def get_entity_value(filename: str, entity: str) -> str | None:
+def get_entity_value(filename: str | Path, entity: str) -> str | None:
     """
     Gets entity value of a BIDS compliant filename.
 
     Parameters
     ----------
-    filename: :obj:`str`
+    filename: :obj:`str` or :obj:`Path`
         Filename to extract entity from.
 
     entity: :obj:`str`
@@ -783,21 +784,22 @@ def get_entity_value(filename: str, entity: str) -> str | None:
     >>> get_entity_value("sub-01_task-flanker_bold.nii.gz", "task")
         "flanker"
     """
-    basename = os.path.basename(filename)
+    basename = Path(filename).name
     match = re.search(rf"{entity}-([^_\.]+)", basename)
 
     return match.group(1) if match else None
 
 
 def infer_task_from_image(
-    nifti_file_or_img: str | nib.nifti1.Nifti1Image, volume_to_task_map: dict[int, str]
+    nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
+    volume_to_task_map: dict[int, str],
 ) -> str:
     """
     Infer the task based on the number of volumes in a 4D NIfTI image.
 
     Parameters
     ----------
-    nifti_file_or_img: :obj:`str` or :obj:`Nifti1Image`, default=None
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
     volume_to_task_map: :obj:`dict[int, str]`

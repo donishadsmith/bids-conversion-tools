@@ -1,5 +1,4 @@
-import glob, os
-import nibabel as nib, pandas as pd, pytest
+import nibabel as nib
 import nifti2bids.io as bids_io
 
 
@@ -7,19 +6,19 @@ def test_compress_image(nifti_img_and_path):
     """Test for ``compress_image``."""
     _, img_path = nifti_img_and_path
 
-    files = glob.glob(os.path.join(os.path.dirname(img_path), "*"))
+    files = list(img_path.parent.glob("*"))
     assert len(files) == 1
 
     file = files[0]
-    assert file.endswith(".nii")
+    assert file.suffix.endswith(".nii")
 
     bids_io.compress_image(img_path, remove_src_file=True)
 
-    files = glob.glob(os.path.join(os.path.dirname(img_path), "*"))
+    files = list(img_path.parent.glob("*"))
     assert len(files) == 1
 
     file = files[0]
-    assert file.endswith(".nii.gz")
+    assert file.suffixes == [".nii", ".gz"]
 
 
 def test_load_nifti(nifti_img_and_path):
@@ -32,7 +31,7 @@ def test_load_nifti(nifti_img_and_path):
 def test_glob_contents(nifti_img_and_path):
     """Test for ``glob_contents``"""
     _, img_path = nifti_img_and_path
-    files = bids_io.glob_contents(os.path.dirname(img_path), pattern=".nii")
+    files = bids_io.glob_contents(img_path.parent, pattern="*.nii")
     assert len(files) == 1
 
 

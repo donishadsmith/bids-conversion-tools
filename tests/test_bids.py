@@ -1,4 +1,4 @@
-import glob, os
+from pathlib import Path
 
 import pandas as pd, pytest
 
@@ -11,12 +11,12 @@ from nifti2bids.bids import (
 
 
 @pytest.mark.parametrize("dst_dir, remove_src_file", ([None, True], [True, False]))
-def test_create_bids_file(nifti_img_and_path, tmp_dir, dst_dir, remove_src_file):
+def test_create_bids_file(nifti_img_and_path, dst_dir, remove_src_file):
     """Test for ``create_bids_file``."""
     _, img_path = nifti_img_and_path
-    dst_dir = None if not dst_dir else os.path.join(tmp_dir.name, "test")
+    dst_dir = None if not dst_dir else img_path.parent / "test"
     if dst_dir:
-        os.makedirs(dst_dir)
+        dst_dir.mkdir()
 
     bids_filename = create_bids_file(
         img_path,
@@ -27,18 +27,18 @@ def test_create_bids_file(nifti_img_and_path, tmp_dir, dst_dir, remove_src_file)
         return_bids_filename=True,
     )
     assert bids_filename
-    assert os.path.basename(bids_filename) == "sub-01_bold.nii"
+    assert Path(bids_filename).name == "sub-01_bold.nii"
 
     if dst_dir:
-        dst_file = glob.glob(os.path.join(dst_dir, "*nii"))[0]
-        assert os.path.basename(dst_file) == "sub-01_bold.nii"
+        dst_file = list(dst_dir.glob("*.nii"))[0]
+        assert Path(dst_file).name == "sub-01_bold.nii"
 
-        src_file = glob.glob(os.path.join(os.path.dirname(img_path), "*.nii"))[0]
-        assert os.path.basename(src_file) == "img.nii"
+        src_file = list(img_path.parent.glob("*.nii"))[0]
+        assert Path(src_file).name == "img.nii"
     else:
-        files = glob.glob(os.path.join(os.path.dirname(img_path), "*.nii"))
+        files = list(img_path.parent.glob("*.nii"))
         assert len(files) == 1
-        assert os.path.basename(files[0]) == "sub-01_bold.nii"
+        assert files[0].name == "sub-01_bold.nii"
 
 
 def test_create_dataset_description():
@@ -52,19 +52,22 @@ def test_save_dataset_description(tmp_dir):
     """Test for ``save_dataset_description``."""
     dataset_desc = create_dataset_description(dataset_name="test", bids_version="1.2.0")
     save_dataset_description(dataset_desc, tmp_dir.name)
-    files = glob.glob(os.path.join(tmp_dir.name, "*.json"))
+    files = list(Path(tmp_dir.name).glob("*.json"))
     assert len(files) == 1
-    assert os.path.basename(files[0]) == "dataset_description.json"
+    assert Path(files[0]).name == "dataset_description.json"
 
 
 def test_create_participant_tsv(tmp_dir):
     """Test for ``create_participant_tsv``."""
-    os.makedirs(os.path.join(tmp_dir.name, "sub-01"))
-    df = create_participant_tsv(tmp_dir.name, save_df=True, return_df=True)
+    path = Path(tmp_dir.name)
+    extended_path = path / "sub-01"
+    extended_path.mkdir()
+
+    df = create_participant_tsv(path, save_df=True, return_df=True)
     assert isinstance(df, pd.DataFrame)
 
-    filename = os.path.join(tmp_dir.name, "participants.tsv")
-    assert os.path.isfile(filename)
+    filename = path / "participants.tsv"
+    assert filename.is_file()
 
     df = pd.read_csv(filename, sep="\t")
     assert df["participant_id"].values[0] == "sub-01"

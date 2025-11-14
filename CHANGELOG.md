@@ -2,6 +2,9 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.1.5] - 2025-11-13
+- Doc and type fixes plus accept Path objects
+
 ## [0.1.4] - 2025-11-12
 - Change parameter name from "interleave_pattern" to "interleaved_pattern"
 
