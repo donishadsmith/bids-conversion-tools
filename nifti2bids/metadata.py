@@ -366,7 +366,7 @@ def _generate_sequence(
 def _create_multiband_slice_groupings(
     slice_order: list[int],
     multiband_factor: int,
-    n_time_steps: int,
+    step_size: int,
     n_fake_slices: int,
     ascending: bool,
 ) -> list[tuple[int, int]]:
@@ -382,9 +382,9 @@ def _create_multiband_slice_groupings(
         The multiband acceleration factor, which is the number of slices
         acquired simultaneously during multislice acquistion.
 
-    n_time_steps: :obj:`int`
-        The number of time steps computed by dividing the number of slices
-        by the multiband factor.
+    step_size : :obj:`int`
+        The step size between grouped slice indices computed by dividing
+        the number of slices by the multiband factor.
 
     n_fake_slices: :obj:`int`
         The number of fake slices added to make total slices divisible
@@ -412,9 +412,7 @@ def _create_multiband_slice_groupings(
         if any(slice_idx in group for group in slice_groupings):
             continue
 
-        sequence = _generate_sequence(
-            slice_idx, multiband_factor, n_time_steps, ascending
-        )
+        sequence = _generate_sequence(slice_idx, multiband_factor, step_size, ascending)
 
         if max(sequence) >= n_real_slices or min(sequence) < 0:
             if n_fake_slices:
@@ -478,7 +476,7 @@ def _create_multiband_timing(
     """
     n_slices = len(slice_order)
 
-    # Step corresponds to number of unique slice timings and the index step size
+    # Number of time steps (also serves as the step size for slice grouping)
     n_time_steps = n_slices // multiband_factor
     slice_duration = tr / n_time_steps
     unique_slice_timings = np.linspace(0, tr - slice_duration, n_time_steps)
