@@ -112,7 +112,9 @@ def _strip_none_entities(bids_filename: str | Path) -> str:
     return f"{'_'.join(retained_entities)}.{ext}"
 
 
-def create_dataset_description(dataset_name: str, bids_version: str = "1.0.0") -> dict:
+def create_dataset_description(
+    dataset_name: str, bids_version: str = "1.0.0"
+) -> dict[str, str]:
     """
     Generate a dataset description dictionary.
 
@@ -133,7 +135,7 @@ def create_dataset_description(dataset_name: str, bids_version: str = "1.0.0") -
 
     Returns
     -------
-    dict
+    dict[str, str]
         The dataset description dictionary
     """
     return {"Name": dataset_name, "BIDSVersion": bids_version}
@@ -175,7 +177,7 @@ def create_participant_tsv(
         Save the dataframe to the root of the BIDS compliant directory.
 
     return_df: :obj:`str`
-        Whether or not to return the dataframe.
+        Returns dataframe if True else return None.
 
     Returns
     -------

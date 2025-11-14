@@ -5,9 +5,7 @@ from nifti2bids.simulate import create_affine, simulate_nifti_image
 
 def test_create_affine():
     """Test for ``create_affine``."""
-    affine = create_affine(
-        xyz_diagonal_value=2, translation_vector=np.array([1, 1, 1, 1])
-    )
+    affine = create_affine(xyz_diagonal_value=2, translation_vector=(1, 1, 1, 1))
     assert all(np.diagonal(affine) == np.array([2, 2, 2, 1]))
     assert all(affine[:, 3] == np.array([1, 1, 1, 1]))
 

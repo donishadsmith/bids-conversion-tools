@@ -708,7 +708,7 @@ def is_valid_date(date_str: str, date_fmt: str) -> bool:
     Return
     ------
     bool
-        True if ``date_str`` has the format specified by ``date_fmt``
+        True if ``date_str`` has the format specified by ``date_fmt``.
 
     Example
     -------
