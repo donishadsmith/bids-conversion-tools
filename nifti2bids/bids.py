@@ -182,7 +182,7 @@ def create_participant_tsv(
     pd.DataFrame or None
         The dataframe if ``return_df`` is True.
     """
-    participants = [Path(folder).name for folder in glob_contents(bids_dir, "*sub-*")]
+    participants = [folder.name for folder in glob_contents(bids_dir, "*sub-*")]
     df = pd.DataFrame({"participant_id": participants})
 
     if save_df:
