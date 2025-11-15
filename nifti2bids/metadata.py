@@ -918,7 +918,7 @@ def compute_effective_echo_spacing(
 
     The following formula is used:
 
-    echo_spacing (in seconds) = water_fat_shift (in pixels) / (field_strength * gyromagnetic ratio * water_fat_difference_ppm) * (epi_factor + 1)
+    effective_echo_spacing (in seconds) = water_fat_shift (in pixels) / (field_strength * gyromagnetic ratio * water_fat_difference_ppm) * (epi_factor + 1)
 
     where:
     field_strength (assumed to be 3T) * gyromagnetic ratio * water_fat_difference_ppm = 3 * 42.58 * 3.4 is approximately 434.215
