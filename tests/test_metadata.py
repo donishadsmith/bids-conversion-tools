@@ -49,6 +49,14 @@ def test_get_n_volumes(nifti_img_and_path):
         bids_meta.get_n_volumes(simulate_nifti_image((10, 10, 10)))
 
 
+def test_get_image_orientation(nifti_img_and_path):
+    """Test for ``get_image_orientation``"""
+    img, _ = nifti_img_and_path
+    orientation_dict, orientation = bids_meta.get_image_orientation(img)
+    assert orientation_dict == {"i": "L -> R", "j": "P -> A", "k": "I -> S"}
+    assert orientation == ("R", "A", "S")
+
+
 def test_get_n_slices(nifti_img_and_path):
     """Test for ``get_n_slices``."""
     from nifti2bids._exceptions import SliceAxisError
@@ -58,9 +66,9 @@ def test_get_n_slices(nifti_img_and_path):
     img.header["slice_end"] = img.get_fdata().shape[2] - 1
 
     with pytest.raises(SliceAxisError):
-        bids_meta.get_n_slices(img, slice_axis="x")
+        bids_meta.get_n_slices(img, slice_axis="i")
 
-    assert bids_meta.get_n_slices(img, slice_axis="z") == img.header["slice_end"] + 1
+    assert bids_meta.get_n_slices(img, slice_axis="k") == img.header["slice_end"] + 1
     assert bids_meta.get_n_slices(img) == img.header["slice_end"] + 1
 
 
@@ -399,3 +407,29 @@ def test_infer_task_from_image(nifti_img_and_path):
     volume_to_task_map = {5: "flanker", 10: "nback"}
 
     assert bids_meta.infer_task_from_image(img, volume_to_task_map) == "flanker"
+
+
+def test_get_recon_matrix_pe(nifti_img_and_path):
+    """Test for ``get_recon_matrix_pe``."""
+    img, _ = nifti_img_and_path
+
+    assert bids_meta.get_recon_matrix_pe(img, "i") == 20
+
+    assert bids_meta.get_recon_matrix_pe(img, "j") == 20
+
+    assert bids_meta.get_recon_matrix_pe(img, "k") == 10
+
+
+def test_compute_effective_echo_spacing():
+    """Quick assertion test for ``compute_effective_echo_spacing``"""
+    water_fat_shift_px = 1.745
+    epi_factor = 27
+
+    assert bids_meta.compute_effective_echo_spacing(1.745, 27) == water_fat_shift_px / (
+        434.215 * (epi_factor + 1)
+    )
+
+
+def test_compute_total_readout_time():
+    """Quick assertion test for ``compute_total_readout_time``"""
+    assert bids_meta.compute_total_readout_time(0.005, 96) == 0.005 * 95

@@ -63,6 +63,7 @@ from NIfTIs.
    determine_slice_axis
    get_hdr_metadata
    get_n_volumes
+   get_image_orientation
    get_n_slices
    get_tr
    create_slice_timing
@@ -72,3 +73,6 @@ from NIfTIs.
    get_date_from_filename
    get_entity_value
    infer_task_from_image
+   get_recon_matrix_pe
+   compute_effective_echo_spacing
+   compute_total_readout_time

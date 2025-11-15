@@ -2,6 +2,10 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.1.7] - 2025-11-15
+- Added new functions and changed accepted values for for parameters relates to
+axes (from x, y, z to i, j, k)
+
 ## [0.1.6] - 2025-11-14
 - Typing and docs fixes, including change for ``create_affine`` to
 accept tuples and lists

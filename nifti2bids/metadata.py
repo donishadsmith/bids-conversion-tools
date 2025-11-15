@@ -8,10 +8,12 @@ import nibabel as nib, numpy as np
 
 from ._exceptions import SliceAxisError, DataDimensionError
 from ._decorators import check_all_none
-from .io import load_nifti, get_nifti_header
+from .io import load_nifti, get_nifti_header, get_nifti_affine
 from .logging import setup_logger
 
 LGR = setup_logger(__name__)
+
+VOXEL_INDX_DICT = {"i": 0, "j": 1, "k": 2}
 
 
 @check_all_none(parameter_names=["nifti_file_or_img", "nifti_header"])
@@ -134,9 +136,61 @@ def get_n_volumes(nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image) -> int
     return img.get_fdata().shape[-1]
 
 
+def get_image_orientation(
+    nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
+) -> tuple[dict[str, str], tuple[str, str, str]]:
+    """
+    Get the image orientation.
+
+    Parameters
+    ----------
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`, default=None
+        Path to the NIfTI file or a NIfTI image.
+
+    Returns
+    -------
+    tuple[dict[str, str], tuple[str, str, str]]:
+        A tuple consisting of a dictionary mapping the voxel dimension
+        to its starting and ending anatomical location (from 0 to N)
+        and a tuple of the image orientation.
+
+        .. note::
+           The reverse direction (N to 0) is just {voxel dimension}-
+           (e.g. "i-" in RAS orientation is "R -> L").
+
+    Examples
+    --------
+    >>> from nifti2bids.simulate import simulate_nifti_image
+    >>> from nifti2bids.metadata import get_image_orientation
+    >>> img = simulate_nifti_image((10, 10, 10, 10))
+    >>> get_image_orientation(img)
+        ({"i": "L -> R", "j": "P -> A", "k": "I -> S"}, ("R", "A", "S"))
+
+    References
+    ----------
+    Weber, D. (n.d.). MRI orientation notes. https://eeg.sourceforge.net/mri_orientation_notes.html
+    """
+    orientation_list = [
+        np.array(("L", "R")),
+        np.array(("A", "P")),
+        np.array(("S", "I")),
+    ]
+    affine = get_nifti_affine(nifti_file_or_img)
+    orientation = nib.orientations.aff2axcodes(affine)
+
+    orientation_dict = {}
+    for voxel_dim, axis_end in zip(("i", "j", "k"), orientation):
+        for axis in orientation_list:
+            if axis_end in axis:
+                axis_start = str(axis[axis != axis_end][0])
+                orientation_dict[voxel_dim] = f"{axis_start} -> {axis_end}"
+
+    return orientation_dict, orientation
+
+
 def get_n_slices(
     nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
-    slice_axis: Optional[Literal["x", "y", "z"]] = None,
+    slice_axis: Optional[Literal["i", "j", "k"]] = None,
 ) -> int:
     """
     Gets the number of slices from the header of a NIfTI image.
@@ -146,7 +200,7 @@ def get_n_slices(
     nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
-    slice_axis: :obj:`Literal["x", "y", "z"]` or :obj:`None`, default=None
+    slice_axis: :obj:`Literal["i", "j", "k"]` or :obj:`None`, default=None
         Axis the image slices were collected in. If None,
         determines the slice axis using metadata ("slice_end")
         from the NIfTI header.
@@ -156,20 +210,18 @@ def get_n_slices(
     int
         The number of slices.
     """
-    slice_dim_map = {"x": 0, "y": 1, "z": 2}
-
     hdr = get_nifti_header(nifti_file_or_img)
     if slice_axis:
-        n_slices = hdr.get_data_shape()[slice_dim_map[slice_axis]]
+        n_slices = hdr.get_data_shape()[VOXEL_INDX_DICT[slice_axis]]
         if slice_end := get_hdr_metadata(nifti_header=hdr, metadata_name="slice_end"):
             if not np.isnan(slice_end) and n_slices != slice_end + 1:
                 raise SliceAxisError(slice_axis, n_slices, slice_end)
 
-        slice_dim_indx = slice_dim_map[slice_axis]
+        slice_dim_indx = VOXEL_INDX_DICT[slice_axis]
     else:
         slice_dim_indx = determine_slice_axis(nifti_header=hdr)
 
-    reversed_slice_dim_map = {v: k for v, k in slice_dim_map.items()}
+    reversed_slice_dim_map = {v: k for v, k in VOXEL_INDX_DICT.items()}
 
     n_slices = hdr.get_data_shape()[slice_dim_indx]
     LGR.info(
@@ -497,7 +549,7 @@ def _create_multiband_timing(
 def create_slice_timing(
     nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
     tr: Optional[float | int] = None,
-    slice_axis: Optional[Literal["x", "y", "z"]] = None,
+    slice_axis: Optional[Literal["i", "j", "k"]] = None,
     acquisition: Literal["sequential", "interleaved"] = "interleaved",
     ascending: bool = True,
     interleaved_pattern: Literal["even", "odd", "philips"] = "odd",
@@ -516,7 +568,7 @@ def create_slice_timing(
         Repetition time in seconds. If None, the repetition time is
         extracted from the NIfTI header.
 
-    slice_axis: :obj:`Literal["x", "y", "z"]` or :obj:`None`, default=None
+    slice_axis: :obj:`Literal["i", "j", "k"]` or :obj:`None`, default=None
         Axis the image slices were collected in. If None,
         determines the slice axis using metadata ("slice_end")
         from the NIfTI header.
@@ -824,3 +876,100 @@ def infer_task_from_image(
     n_volumes = get_n_volumes(nifti_file_or_img)
 
     return volume_to_task_map.get(n_volumes)
+
+
+def get_recon_matrix_pe(
+    nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
+    phase_encoding_axis: Literal["i", "j", "k"],
+) -> int:
+    """
+    Get the reconstruction matrix of the phase encoding axis.
+
+    Parameters
+    ----------
+    nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`
+        Path to the NIfTI file or a NIfTI image.
+
+    phase_encoding_axis: :obj:`Literal["i", "j", "k"]`
+        The axis phase encoding was applied to.
+
+    Returns
+    -------
+    int
+        The value of the reconstruction matrix for ``phase_encoding_axis``,
+        which is just the shape of the data in that dimension.
+    """
+    img = load_nifti(nifti_file_or_img)
+
+    return img.get_fdata().shape[VOXEL_INDX_DICT[phase_encoding_axis]]
+
+
+def compute_effective_echo_spacing(
+    water_fat_shift_pixels: float, epi_factor: int
+) -> float:
+    """
+    Compute the effective echo spacing for Philips 3T MRI.
+
+    The following formula is used:
+
+    echo_spacing (in seconds) = water_fat_shift (in pixels) / (field_strength * gyromagnetic ratio * water_fat_difference_ppm) * (epi_factor + 1)
+
+    where:
+    field_strength (assumed to be 3T) * gyromagnetic ratio * water_fat_difference_ppm = 3 * 42.58 * 3.4 is approximately 434.215
+
+    Parameters
+    ----------
+    water_fat_shift_pixels: :obj:`float`
+        The water and fat chemical shift in pixels.
+
+    epi_factor: :obj:`int`
+        The EPI factor or the number of echoes per excitation.
+
+        .. note:: in plane acceleration already accounted for in this factor
+
+    Returns
+    -------
+    float
+        The effective echo spacing in seconds.
+
+    References
+    ----------
+    sdcflows.utils.epimanip module - sdcflows 0+unknown documentation. (2022). Nipreps.org.
+    https://www.nipreps.org/sdcflows/master/api/sdcflows.utils.epimanip.html#mjx-eqn%3Aeq%3Arotime-ees
+    """
+    return water_fat_shift_pixels / (434.215 * (epi_factor + 1))
+
+
+def compute_total_readout_time(
+    effective_echo_spacing: float, recon_matrix_pe: int
+) -> float:
+    """
+    Compute the total readout time.
+
+    The following formula is used:
+
+    total_readout_time = effective_echo_spacing * (recon_matrix_pe - 1)
+
+    where:
+    echo_train_length = epi_factor + 1
+    (Number of echos acquired every radiofrequency pulse (repetition time))
+
+    Parameters
+    ----------
+    effective_echo_spacing: :obj:`float`
+        The effective echo spacing in seconds.
+
+    recon_matrix_pe: :obj:`int`
+        The number of pixels in the phase encoding axis of the reconstruction matrix.
+
+    Returns
+    -------
+    float
+        The total readout time in seconds.
+
+    References
+    ----------
+    sdcflows.utils.epimanip module - sdcflows 0+unknown documentation. (2022). Nipreps.org.
+    https://www.nipreps.org/sdcflows/master/api/sdcflows.utils.epimanip.html#mjx-eqn%3Aeq%3Arotime-ees
+    """
+    return effective_echo_spacing * (recon_matrix_pe - 1)
