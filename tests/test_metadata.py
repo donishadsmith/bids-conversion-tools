@@ -85,8 +85,8 @@ def test_get_tr(nifti_img_and_path):
         bids_meta.get_tr(img)
 
 
-@pytest.mark.parametrize("acquisition", ("sequential", "interleaved"))
-def test_create_slice_timing_singleband(acquisition):
+@pytest.mark.parametrize("slice_acquisition_method", ("sequential", "interleaved"))
+def test_create_slice_timing_singleband(slice_acquisition_method):
     """Test for ``create_slice_timing`` for singleband acquisition."""
     from nifti2bids.simulate import simulate_nifti_image
 
@@ -94,24 +94,24 @@ def test_create_slice_timing_singleband(acquisition):
     img.header["pixdim"][4] = 2
     img.header["slice_end"] = 3
 
-    if acquisition == "sequential":
+    if slice_acquisition_method == "sequential":
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
         )
         assert slice_timing_list == [0, 0.5, 1, 1.5]
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=False,
         )
         assert slice_timing_list == [1.5, 1, 0.5, 0]
     else:
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
             interleaved_pattern="odd",
         )
@@ -119,7 +119,7 @@ def test_create_slice_timing_singleband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=False,
             interleaved_pattern="odd",
         )
@@ -127,7 +127,7 @@ def test_create_slice_timing_singleband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
             interleaved_pattern="even",
         )
@@ -135,7 +135,7 @@ def test_create_slice_timing_singleband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=False,
             interleaved_pattern="even",
         )
@@ -143,7 +143,7 @@ def test_create_slice_timing_singleband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
             interleaved_pattern="philips",
         )
@@ -151,7 +151,7 @@ def test_create_slice_timing_singleband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=False,
             interleaved_pattern="philips",
         )
@@ -160,14 +160,14 @@ def test_create_slice_timing_singleband(acquisition):
         with pytest.raises(ValueError):
             slice_timing_list = bids_meta.create_slice_timing(
                 nifti_file_or_img=img,
-                acquisition=acquisition,
+                slice_acquisition_method=slice_acquisition_method,
                 ascending=False,
                 interleaved_pattern="incorrect_value",
             )
 
 
-@pytest.mark.parametrize("acquisition", ("sequential", "interleaved"))
-def test_create_slice_timing_multiband(acquisition):
+@pytest.mark.parametrize("slice_acquisition_method", ("sequential", "interleaved"))
+def test_create_slice_timing_multiband(slice_acquisition_method):
     """Test for ``create_slice_timing`` for multiband acquisition."""
     from nifti2bids.simulate import simulate_nifti_image
 
@@ -175,10 +175,10 @@ def test_create_slice_timing_multiband(acquisition):
     img.header["pixdim"][4] = 2
     img.header["slice_end"] = 9
 
-    if acquisition == "sequential":
+    if slice_acquisition_method == "sequential":
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
             multiband_factor=2,
         )
@@ -188,7 +188,7 @@ def test_create_slice_timing_multiband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=False,
             multiband_factor=2,
         )
@@ -198,7 +198,7 @@ def test_create_slice_timing_multiband(acquisition):
     else:
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
             interleaved_pattern="odd",
             multiband_factor=2,
@@ -209,7 +209,7 @@ def test_create_slice_timing_multiband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             interleaved_pattern="odd",
             ascending=False,
             multiband_factor=2,
@@ -220,7 +220,7 @@ def test_create_slice_timing_multiband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
             interleaved_pattern="even",
             multiband_factor=2,
@@ -231,7 +231,7 @@ def test_create_slice_timing_multiband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             interleaved_pattern="even",
             ascending=False,
             multiband_factor=2,
@@ -242,7 +242,7 @@ def test_create_slice_timing_multiband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
             interleaved_pattern="philips",
             multiband_factor=2,
@@ -253,7 +253,7 @@ def test_create_slice_timing_multiband(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=False,
             interleaved_pattern="philips",
             multiband_factor=2,
@@ -265,14 +265,14 @@ def test_create_slice_timing_multiband(acquisition):
         with pytest.raises(ValueError):
             slice_timing_list = bids_meta.create_slice_timing(
                 nifti_file_or_img=img,
-                acquisition=acquisition,
+                slice_acquisition_method=slice_acquisition_method,
                 interleaved_pattern="philips",
                 multiband_factor=3,
             )
 
 
-@pytest.mark.parametrize("acquisition", ("sequential", "interleaved"))
-def test_create_slice_timing_multiband_indivisible(acquisition):
+@pytest.mark.parametrize("slice_acquisition_method", ("sequential", "interleaved"))
+def test_create_slice_timing_multiband_indivisible(slice_acquisition_method):
     """
     Test for ``create_slice_timing`` for multiband acquisition with
     indivisible multiband factor.
@@ -283,10 +283,10 @@ def test_create_slice_timing_multiband_indivisible(acquisition):
     img.header["pixdim"][4] = 2
     img.header["slice_end"] = 9
 
-    if acquisition == "sequential":
+    if slice_acquisition_method == "sequential":
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
             multiband_factor=3,
         )
@@ -298,7 +298,7 @@ def test_create_slice_timing_multiband_indivisible(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=False,
             multiband_factor=3,
         )
@@ -310,7 +310,7 @@ def test_create_slice_timing_multiband_indivisible(acquisition):
     else:
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
             interleaved_pattern="odd",
             multiband_factor=3,
@@ -323,7 +323,7 @@ def test_create_slice_timing_multiband_indivisible(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             interleaved_pattern="odd",
             ascending=False,
             multiband_factor=3,
@@ -336,7 +336,7 @@ def test_create_slice_timing_multiband_indivisible(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             ascending=True,
             interleaved_pattern="even",
             multiband_factor=3,
@@ -349,7 +349,7 @@ def test_create_slice_timing_multiband_indivisible(acquisition):
 
         slice_timing_list = bids_meta.create_slice_timing(
             nifti_file_or_img=img,
-            acquisition=acquisition,
+            slice_acquisition_method=slice_acquisition_method,
             interleaved_pattern="even",
             ascending=False,
             multiband_factor=3,

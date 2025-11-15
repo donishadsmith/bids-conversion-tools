@@ -553,7 +553,7 @@ def create_slice_timing(
     nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
     tr: Optional[float | int] = None,
     slice_axis: Optional[Literal["i", "j", "k"]] = None,
-    acquisition: Literal["sequential", "interleaved"] = "interleaved",
+    slice_acquisition_method: Literal["sequential", "interleaved"] = "interleaved",
     ascending: bool = True,
     interleaved_pattern: Literal["even", "odd", "philips"] = "odd",
     multiband_factor: Optional[int] = None,
@@ -576,7 +576,7 @@ def create_slice_timing(
         determines the slice axis using metadata ("slice_end")
         from the NIfTI header.
 
-    acquisition :obj:`Literal["sequential", "interleaved"]`, default="interleaved"
+    slice_acquisition_method :obj:`Literal["sequential", "interleaved"]`, default="interleaved"
         Method used for acquiring slices.
 
         .. note::
@@ -659,7 +659,10 @@ def create_slice_timing(
     # https://raw.githubusercontent.com/mr-jaemin/ge-mri/main/doc/GEHC_fMRI_Slice_Timing_Info.pdf
     n_fake_slices = 0
     if multiband_factor and n_slices % multiband_factor != 0:
-        if acquisition == "interleaved" and interleaved_pattern == "philips":
+        if (
+            slice_acquisition_method == "interleaved"
+            and interleaved_pattern == "philips"
+        ):
             raise ValueError(
                 f"For 'philips' interleave pattern with multiband, the number "
                 f"of slices ({n_slices}) must be evenly divisible by the "
@@ -676,10 +679,10 @@ def create_slice_timing(
 
     total_slices = n_slices + n_fake_slices
     acquisition_kwargs = {"n_slices": total_slices, "ascending": ascending}
-    if acquisition == "interleaved":
+    if slice_acquisition_method == "interleaved":
         acquisition_kwargs.update({"interleaved_pattern": interleaved_pattern})
 
-    slice_order = slice_ordering_func[acquisition](**acquisition_kwargs)
+    slice_order = slice_ordering_func[slice_acquisition_method](**acquisition_kwargs)
     tr = tr if tr else get_tr(nifti_file_or_img)
     band_kwargs = {"tr": tr, "slice_order": slice_order}
 
