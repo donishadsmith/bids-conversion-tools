@@ -169,6 +169,9 @@ def get_image_orientation(
     References
     ----------
     Weber, D. (n.d.). MRI orientation notes. https://eeg.sourceforge.net/mri_orientation_notes.html
+
+    Orientation and Voxel-Order Terminology: RAS, LAS, LPI, RPI, XYZ and All That. (n.d.).
+    Www.grahamwideman.com. http://www.grahamwideman.com/gw/brain/orientation/orientterms.htm
     """
     orientation_list = [
         np.array(("L", "R")),
