@@ -12,9 +12,9 @@ io -- Generic operations related to loading NIfTI data
 logging -- Set up a logger using ``RichHandler`` as the default handler if a root or
 module specific handler is not available
 
-metadata -- Operations related to extracting metadata information from NIfTI images
+metadata -- Operations related to extracting or creating metadata information from NIfTI images
 
 simulate -- Simulate a basic NIfTI image for testing purposes
 """
 
-__version__ = "0.1.8"
+__version__ = "0.1.9"

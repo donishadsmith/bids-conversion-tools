@@ -2,6 +2,11 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.1.9] - 2025-11-19
+- Parameter name change for ``infer_task_for_image`` and give ability
+to handle different mapping
+- Decorator to check if NIfTI image is raw
+
 ## [0.1.8] - 2025-11-15
 - Return acquisition parameter to slice_acquisition_method
 

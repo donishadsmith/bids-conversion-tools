@@ -400,18 +400,24 @@ def test_get_entity_value():
     assert not bids_meta.get_entity_value(filename, "ses")
 
 
-def test_infer_task_from_image(nifti_img_and_path):
+@pytest.mark.parametrize(
+    "task_volumes", ({5: "flanker", 10: "nback"}, {"flanker": 5, "nback": 10})
+)
+def test_infer_task_from_image(nifti_img_and_path, task_volumes):
     """Test for ``infer_task_from_image``."""
     img, _ = nifti_img_and_path
 
-    volume_to_task_map = {5: "flanker", 10: "nback"}
-
-    assert bids_meta.infer_task_from_image(img, volume_to_task_map) == "flanker"
+    assert bids_meta.infer_task_from_image(img, task_volumes) == "flanker"
 
 
 def test_get_recon_matrix_pe(nifti_img_and_path):
     """Test for ``get_recon_matrix_pe``."""
     img, _ = nifti_img_and_path
+
+    with pytest.raises(ValueError):
+        bids_meta.get_recon_matrix_pe(img, "i")
+
+    img.header["sform_code"] = 1
 
     assert bids_meta.get_recon_matrix_pe(img, "i") == 20
 

@@ -7,7 +7,7 @@ from typing import Any, Literal, Optional
 import nibabel as nib, numpy as np
 
 from ._exceptions import SliceAxisError, DataDimensionError
-from ._decorators import check_all_none
+from ._decorators import check_all_none, check_nifti
 from .io import load_nifti, get_nifti_header, get_nifti_affine
 from .logging import setup_logger
 
@@ -852,7 +852,7 @@ def get_entity_value(filename: str | Path, entity: str) -> str | None:
 
 def infer_task_from_image(
     nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
-    volume_to_task_map: dict[int, str],
+    task_volume_map: dict[str, int] | dict[int, str],
 ) -> str:
     """
     Infer the task based on the number of volumes in a 4D NIfTI image.
@@ -862,8 +862,9 @@ def infer_task_from_image(
     nifti_file_or_img: :obj:`str`, :obj:`Path`, or :obj:`Nifti1Image`
         Path to the NIfTI file or a NIfTI image.
 
-    volume_to_task_map: :obj:`dict[int, str]`
-        A mapping of the number of volumes for each taskname.
+    task_volume_map: :obj:`dict[str, int]` or :obj:`dict[int, str]`
+        A mapping of the task names to the expected number of
+        volumes.
 
     Returns
     -------
@@ -875,15 +876,21 @@ def infer_task_from_image(
     >>> from nifti2bids.io import simulate_nifti_image
     >>> from nifti2bids.metadata import infer_task_from_image
     >>> img = simulate_nifti_image((100, 100, 100, 260))
-    >>> volume_to_task_map = {300: "flanker", 260: "nback"}
-    >>> infer_task_from_image(img, volume_to_task_map)
+    >>> task_volume_map = {"flanker": 300, "nback": 260}
+    >>> infer_task_from_image(img, task_volume_map)
         "nback"
     """
     n_volumes = get_n_volumes(nifti_file_or_img)
 
-    return volume_to_task_map.get(n_volumes)
+    if isinstance(next(iter(task_volume_map)), str):
+        volume_lookup = dict(zip(task_volume_map.values(), task_volume_map.keys()))
+    else:
+        volume_lookup = task_volume_map
+
+    return volume_lookup.get(n_volumes)
 
 
+@check_nifti()
 def get_recon_matrix_pe(
     nifti_file_or_img: str | Path | nib.nifti1.Nifti1Image,
     phase_encoding_axis: Literal["i", "j", "k"],
