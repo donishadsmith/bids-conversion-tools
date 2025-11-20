@@ -14,7 +14,10 @@ module specific handler is not available
 
 metadata -- Operations related to extracting or creating metadata information from NIfTI images
 
+parsers -- Operations related to standardizing and parsing information logs created by stimulus
+presentation software such as Presentation
+
 simulate -- Simulate a basic NIfTI image for testing purposes
 """
 
-__version__ = "0.1.9"
+__version__ = "0.2.0"

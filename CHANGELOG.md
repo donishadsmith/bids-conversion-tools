@@ -2,6 +2,9 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.2.0] - 2025-11-20
+- Add parser module
+
 ## [0.1.9] - 2025-11-19
 - Parameter name change for ``infer_task_for_image`` and give ability
 to handle different mapping

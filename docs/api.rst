@@ -76,3 +76,17 @@ from NIfTIs.
    get_recon_matrix_pe
    compute_effective_echo_spacing
    compute_total_readout_time
+
+:mod:`nifti2bids.parsers`
+--------------------------
+Module containing functions to parse logs from stimulus
+presentation software.
+
+.. currentmodule:: nifti2bids.parsers
+
+.. autosummary::
+   :template: function.rst
+   :nosignatures:
+   :toctree: generated/
+
+   load_presentation_log

@@ -1,0 +1,35 @@
+from pathlib import Path
+import pytest
+
+from nifti2bids.parsers import load_presentation_log, PRESENTATION_COLUMNS
+
+
+@pytest.fixture(autouse=False, scope="function")
+def create_presentation_logfile(tmp_dir):
+    sample_log = [
+        "Scenario - Flanker task using SPM event_run8.txt file.\n",
+        "Logfile written - 09/24/2025 11:40:20\n",
+        "\n",
+        "Trial\tEvent Type\tCode\tTime\tTTime\tUncertainty\tDuration\tUncertainty\tReqTime\tReqDur\tStim Type\tPair Index\n",
+        "\n",
+        "1\tPicture\tcrosshairF\t151281\t151235\t1\t78633\t1\t0\t79789\tother\t1\n",
+        "1\tPort Input\t54\t151495\t151450\t2\n",
+        "\n",
+        "Picture\t53\t150385\t150950\t2\n",
+        "Some random text",
+    ]
+    dst_path = Path(tmp_dir.name) / "sample_log.txt"
+    with open(dst_path, "w") as f:
+        for line in sample_log:
+            f.writelines(line)
+
+    yield dst_path
+
+
+def test_load_presentation_log(create_presentation_logfile):
+    """Test for ``load_presentation_log`` function."""
+    src_file = create_presentation_logfile
+    df = load_presentation_log(src_file)
+    assert len(df) == 2
+    assert all(col in PRESENTATION_COLUMNS for col in df.columns)
+    assert df["Event Type"].values.tolist() == ["Picture", "Port Input"]
