@@ -954,7 +954,9 @@ def compute_effective_echo_spacing(
 
 
 def compute_total_readout_time(
-    effective_echo_spacing: float, recon_matrix_pe: int
+    effective_echo_spacing: Optional[float] = None,
+    recon_matrix_pe: Optional[int] = None,
+    use_fallback_trt: bool = False,
 ) -> float:
     """
     Compute the total readout time.
@@ -975,6 +977,9 @@ def compute_total_readout_time(
     recon_matrix_pe: :obj:`int`
         The number of pixels in the phase encoding axis of the reconstruction matrix.
 
+    use_fallback_trt: :obj:`bool`
+        If True, a fallback readout time of 0.03125 is used.
+
     Returns
     -------
     float
@@ -985,4 +990,13 @@ def compute_total_readout_time(
     sdcflows.utils.epimanip module - sdcflows 0+unknown documentation. (2022). Nipreps.org.
     https://www.nipreps.org/sdcflows/master/api/sdcflows.utils.epimanip.html#mjx-eqn%3Aeq%3Arotime-ees
     """
-    return effective_echo_spacing * (recon_matrix_pe - 1)
+    if not (effective_echo_spacing or recon_matrix_pe) and not use_fallback_trt:
+        raise ValueError(
+            "`effective_echo_spacing` and `recon_matrix_pe` must be provided when `use_fallback_trt` is False."
+        )
+
+    return (
+        effective_echo_spacing * (recon_matrix_pe - 1)
+        if not use_fallback_trt
+        else 0.03125
+    )

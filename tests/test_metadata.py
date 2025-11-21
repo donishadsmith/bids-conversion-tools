@@ -439,3 +439,7 @@ def test_compute_effective_echo_spacing():
 def test_compute_total_readout_time():
     """Quick assertion test for ``compute_total_readout_time``"""
     assert bids_meta.compute_total_readout_time(0.005, 96) == 0.005 * 95
+    assert bids_meta.compute_total_readout_time(use_fallback_trt=True) == 0.03125
+
+    with pytest.raises(ValueError):
+        bids_meta.compute_total_readout_time()

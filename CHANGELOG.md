@@ -2,6 +2,9 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.2.2] - 2025-11-21
+- Add fallback trt parameter
+
 ## [0.2.1] - 2025-11-20
 - Fix potential edge case in parsing function
 
