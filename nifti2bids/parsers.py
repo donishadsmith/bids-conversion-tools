@@ -82,7 +82,7 @@ def load_presentation_log(
     Parameters
     ----------
     log_filepath: :obj:`str` or :obj:`Path`
-        Absolute path to the Presentation log file.
+        Absolute path to the Presentation log file (i.e text, log, excel files).
 
     column_headers: :obj:`list[str]` or :obj:`None`, default=None
         The column headers for the data in the Presentation log file.
@@ -112,7 +112,11 @@ def load_presentation_log(
                 content_indices.append(indx)
                 break
 
-        start_indx, stop_indx = content_indices
+        start_indx = content_indices[0]
+        stop_indx = (
+            content_indices[1] if len(content_indices) > 1 else len(cleaned_textlines)
+        )
+
         data_textlines = cleaned_textlines[(start_indx + 1) : stop_indx]
 
     return _convert_textlines_to_df(data_textlines, deliminator, column_headers)
