@@ -3,7 +3,7 @@
 Documentation of changes for each version of ``Nifti2Bids``.
 
 ## [0.2.1] - 2025-11-20
-- Fix potential egde case in parsing function
+- Fix potential edge case in parsing function
 
 ## [0.2.0] - 2025-11-20
 - Add parser module
