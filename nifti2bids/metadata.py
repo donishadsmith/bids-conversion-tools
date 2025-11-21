@@ -616,7 +616,7 @@ def create_slice_timing(
         determines the slice axis using metadata ("slice_end")
         from the NIfTI header.
 
-    slice_acquisition_method :obj:`Literal["sequential", "interleaved", "central"]`, default="interleaved"
+    slice_acquisition_method: :obj:`Literal["sequential", "interleaved", "central"]`, default="interleaved"
         Method used for acquiring slices.
 
         .. note::
@@ -639,7 +639,7 @@ def create_slice_timing(
         order (False).
 
         .. important::
-            ``ascending`` always set to True when ``slice_acquisition_method`` is
+           ``ascending`` always set to True when ``slice_acquisition_method`` is
            "central" and "reversed_central" to prevent ``numpy.flip`` from.
 
     interleaved_pattern: :obj:`Literal["even", "odd", "philips"]`, default="odd"
@@ -653,7 +653,7 @@ def create_slice_timing(
            Philips' "default" mode is equivalent to "interleave" with the pattern
            set to "odd", and ascending set to True.
 
-    multiband_factor: :obj:`int` or :obj:`None`, default == None
+    multiband_factor: :obj:`int` or :obj:`None`, default=None
         The multiband acceleration factor, which is the number of slices
         acquired simultaneously during multislice acquisition. Slice
         ordering is created using a step factor equivalent to
@@ -667,11 +667,11 @@ def create_slice_timing(
         The final slice timing order is [0, 4, 8, 2, 6, 10, 1, 5, 9, 3, 7, 11].
 
         .. important::
-            - Multiband grouping is primarily based on based on
-              Philip's ordering for multiband acquisition for different
-              slice acquisition methods. For more information refer to the
-              `University of Washington Diagnostic Imaging Sciences Center Technical Notes
-              <https://depts.washington.edu/mrlab/technotes/fmri.shtml>`_.
+           - Multiband grouping is primarily based on based on
+             Philip's ordering for multiband acquisition for different
+             slice acquisition methods. For more information refer to the
+             `University of Washington Diagnostic Imaging Sciences Center Technical Notes
+             <https://depts.washington.edu/mrlab/technotes/fmri.shtml>`_.
 
             - Parameter not used for "central" and "reversed_central"  as there is
               no reference to assure ordering in multiband acquisition.
@@ -681,8 +681,8 @@ def create_slice_timing(
     list[float]
         List containing the slice timing acquisition.
 
-    Referenes
-    ---------
+    References
+    ----------
     Parker, David, et al. "Optimal Slice Timing Correction and Its Interaction with
     FMRI Parameters and Artifacts." Medical Image Analysis, vol. 35, Jan. 2017, pp. 434–445,
     https://doi.org/10.1016/j.media.2016.08.006. Accessed 28 Jan. 2022.

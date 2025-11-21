@@ -86,9 +86,24 @@ def load_presentation_log(
 
     column_headers: :obj:`list[str]` or :obj:`None`, default=None
         The column headers for the data in the Presentation log file.
-        If None, then the following headers are used -
-        ``["Trial", "Event Type", "Code", "Time", "TTime", "Uncertainty", "Duration",
-           "Uncertainty", "ReqTime", "ReqDur", "Stim Type", "Pair Index"]``.
+        If None, then the following headers are used:
+
+        ::
+
+            default_column_headers = [
+                "Trial",
+                "Event Type",
+                "Code", "Time",
+                "TTime",
+                "Uncertainty",
+                "Duration",
+                "Uncertainty",
+                "ReqTime",
+                "ReqDur",
+                "Stim Type",
+                "Pair Index"
+                ]
+
 
     Returns
     -------
