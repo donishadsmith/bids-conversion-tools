@@ -2,6 +2,11 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.2.3] - 2025-11-21
+- Add new slice acquisition methods
+- Remove ability to use indivisible multiband factor since ordering
+may depend on software version for GE.
+
 ## [0.2.2] - 2025-11-21
 - Add fallback trt parameter
 
