@@ -1,11 +1,12 @@
 from pathlib import Path
+
 import pytest
 
 from nifti2bids.parsers import load_presentation_log, PRESENTATION_COLUMNS
 
 
 @pytest.fixture(autouse=False, scope="function")
-def create_presentation_logfile(tmp_dir):
+def create_logfile(tmp_dir):
     sample_log = [
         "Scenario - Flanker task using SPM event_run8.txt file.\n",
         "Logfile written - 09/24/2025 11:40:20\n",
@@ -26,10 +27,21 @@ def create_presentation_logfile(tmp_dir):
     yield dst_path
 
 
-def test_load_presentation_log(create_presentation_logfile):
+def test_load_presentation_log(create_logfile):
     """Test for ``load_presentation_log`` function."""
-    src_file = create_presentation_logfile
+    src_file = create_logfile
     df = load_presentation_log(src_file)
     assert len(df) == 2
     assert all(col in PRESENTATION_COLUMNS for col in df.columns)
     assert df["Event Type"].values.tolist() == ["Picture", "Port Input"]
+
+    columns = ["Time", "TTime", "Duration", "ReqTime", "ReqDur"]
+    to_float = lambda num_list: [float(x) for x in num_list]
+    assert list(df.loc[0, columns].values) == to_float(
+        [151281, 151235, 78633, 0, 79789]
+    )
+
+    df = load_presentation_log(src_file, convert_to_seconds=True)
+    assert list(df.loc[0, columns].values) == to_float(
+        [15.1281, 15.1235, 7.8633, 0.0, 7.9789]
+    )

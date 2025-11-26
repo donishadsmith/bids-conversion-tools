@@ -2,11 +2,13 @@
 
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 import pandas as pd
+import numpy as np
 
 from nifti2bids.io import _copy_file, glob_contents
+from nifti2bids.parsers import load_presentation_log, _convert_time
 
 
 def create_bids_file(
@@ -191,3 +193,106 @@ def create_participant_tsv(
         df.to_csv(Path(bids_dir) / "participants.tsv", sep="\t", index=None)
 
     return df if return_df else None
+
+
+def presentation_log_to_bids(
+    presentation_log_or_df: str | Path | pd.DataFrame,
+    trial_types: Optional[list[str]],
+    experimental_design: Literal["block", "event"],
+    rest_block_code: Optional[list[str]] = None,
+    include_response: bool = False,
+) -> pd.DataFrame:
+    """
+    Creates BIDs compliant events dataframe from Presentation log or dataframe.
+
+    Parameters
+    ----------
+    presentation_log_or_df: :obj:`str`, :obj:`Path`, :obj:`pd.DataFrame`
+        The presentation log as a file path or the presentation DataFrame
+        returned by :code:`nifti2bids.parsers.load_presentation_log`.
+
+    trial_types: :obj:`list[str]` or :obj:`None`
+        The names of the trial types (i.e "congruentleft", "seen").
+        If None, the code will identify the trial types.
+
+        .. important::
+        ``trial_types=["congruent", "incongruent"]`` will identify
+        all trial types beginning with "congruent" and "incongruent"
+
+    experiment_design: :obj:`Literal["block", "event"]
+        The experimental design. Options are "block" or "event".
+
+        .. important::
+           Duration for "block" is computed as the difference between the
+           start of the block and the start of the interstimulus time.
+           The duration of "event" is computed as the difference between
+           the event stimulus and the response.
+
+    rest_block_code: :obj:`str`, default=None
+        The name of the code for the rest block. Only used
+        when ``experiment_design`` is "rest".
+
+    include_response: :obj:`bool`, default=False
+        Includes a response column. Only used when
+        ``experiment_design`` is "evemt".
+
+    Returns
+    -------
+    pandas.DataFrame
+        The event dataframe which includes columns specifying the onset, duration,
+        and trial type. If ``include_response`` is True and ``experimental_design``
+        is True then a "response" column is added.
+    """
+    assert experimental_design in [
+        "event",
+        "block",
+    ], "Valid inputs for ``experimental_design`` are 'event' and 'block'"
+    assert not (
+        experimental_design == "block" and rest_block_code is None
+    ), "``rest_block_code` cannot be None when ``experimental_design`` is 'block'"
+
+    if not isinstance(presentation_log_or_df, pd.DataFrame):
+        presentation_df = load_presentation_log(
+            presentation_log_or_df, convert_to_seconds=True
+        )
+    else:
+        presentation_df = presentation_log_or_df
+        if all(isinstance(val, int) for val in presentation_df["Time"]):
+            presentation_df = _convert_time(presentation_df, convert_to_seconds=True)
+
+    if experimental_design == "block":
+        rest_block_indxs = presentation_df[
+            presentation_df["Code"].str.startswith(rest_block_code)
+        ].index.tolist()
+        rest_block_indxs = np.array(rest_block_indxs)
+
+    # Get the first pulse which corresponds to scanner start time
+    scanner_start = presentation_df.loc[
+        presentation_df["Event Type"] == "Pulse", "Time"
+    ].values[0]
+    events = []
+    for row_indx, row in presentation_df.iterrows():
+        onset = row["Time"] - scanner_start
+        if row["Event Type"] == "Picture" and row["Code"].startswith(
+            tuple(trial_types)
+        ):
+            if experimental_design == "event":
+                trial_num = row["Trial"]
+                response_row = presentation_df[
+                    (presentation_df["Trial"] == trial_num)
+                    & (presentation_df["Event Type"] == "Response")
+                ]
+                duration = response_row.iloc[0]["Time"] - row["Time"]
+                response = row["Stim Type"]
+            else:
+                rest_indx = rest_block_indxs[rest_block_indxs > row_indx][0]
+                rest_row = presentation_df.loc[rest_indx, :]
+                duration = rest_row["Time"] - row["Time"]
+
+            data = {"onset": onset, "duration": duration, "trial_type": row["Code"]}
+            if experimental_design == "event" and include_response:
+                data.update({"response": response})
+
+            events.append(data)
+
+    return pd.DataFrame(events)

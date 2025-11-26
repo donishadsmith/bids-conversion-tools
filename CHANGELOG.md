@@ -1,6 +1,9 @@
 # Changelog
 
 Documentation of changes for each version of ``Nifti2Bids``.
+## [0.2.4] - 2025-11-25
+- Add new function to convert presentation logs to bids event files
+- Simplify some function parameters
 
 ## [0.2.3] - 2025-11-21
 - Add new slice acquisition methods
