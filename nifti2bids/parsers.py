@@ -1,110 +1,79 @@
+import csv, io
 from pathlib import Path
 
 import pandas as pd
 
-PRESENTATION_COLUMNS = [
-    "Trial",
-    "Event Type",
-    "Code",
-    "Time",
-    "TTime",
-    "Uncertainty",
-    "Duration",
-    "Uncertainty",
-    "ReqTime",
-    "ReqDur",
-    "Stim Type",
-    "Pair Index",
-]
 
-
-def _determine_deliminator(textlines: list[str]) -> str | None:
+def _determine_delimiter(
+    textlines: list[str], initial_column_headers: tuple[str]
+) -> str:
     """
-    Identify the deliminator used for the data based on the
-    deliminator used for the column titles.
+    Identify the delimiter used for the data based on the
+    delimiter used for the inital column headers.
 
     Parameters
     ----------
     textlines: :obj:`list[str]`
         The lines of text from the presentation log file.
 
-    Returns
-    -------
-    str or None
-        The deliminator or None if the deliminator not determined.
-    """
-    for line in textlines:
-        if line.startswith(PRESENTATION_COLUMNS[0]):
-            first_string = line.split(PRESENTATION_COLUMNS[1])[0]
-            deliminator = first_string.removeprefix(PRESENTATION_COLUMNS[0])
-            break
-
-    return deliminator
-
-
-def _convert_textlines_to_df(
-    data_textlines: list[str], deliminator: str, column_headers
-) -> pd.DataFrame:
-    """
-    Convert textlines to a Pandas Dataframe.
-
-    Parameters
-    ----------
-    data_textlines: :obj:`list[str]`
-        The lines of text containing the data.
-
-    deliminator: :obj:`str`
-        The seperator used for the data.
-
-    column_headers: :obj:`list[str]` or :obj:`None`
-        The column headers for the data in the Presentation log file.
+    initial_column_headers: :obj:`tuple[str]`
+        The initial column headers for data.
 
     Returns
     -------
-    Dataframe
-        A Pandas dataframe of the data.
+    str
+        The delimiter
     """
-    data = [line.removesuffix("\n").split(f"{deliminator}") for line in data_textlines]
+    sniffer = csv.Sniffer()
+    for indx, line in enumerate(textlines):
+        if line.startswith(tuple(initial_column_headers)):
+            header_string = textlines[indx]
 
-    return pd.DataFrame(data, columns=column_headers)
+    return sniffer.sniff(header_string, delimiters=None).delimiter
 
 
 def _convert_time(
-    presentation_df: pd.DataFrame, convert_to_seconds: bool
+    df: pd.DataFrame, convert_to_seconds: list[str], divisor: int
 ) -> pd.DataFrame:
     """
-    Convert timing of the Presentation Dataframe to floats.
+    Change time resolution of specific columns.
 
     Parameters
     ----------
     presentation_df: :obj:`DataFrame`
         Pandas Dataframe of the Presentation log
 
-    convert_to_seconds: :obj:`bool`, default=False
-        Convert resolution of all time columns from 0.1ms to seconds.
+    convert_to_seconds: :obj:`list[str]` or :obj:`None`, default=None
+        Columns to convert to time.
+
+    divisor: :obj:`int` or :obj:`None`, default=None
+        Value to divide columns listed in ``convert_to_columns`` by.
 
     Returns
     -------
     pandas.Dataframe
-        Dataframe of Presentation log with timing converted to floats and
-        time resolution converted to seconfs if ``convert_to_seconds`` is
-        True.
+        Dataframe with timing of the columns listed in
+        ``convert_to_seconds`` converted to the units
+        of the ``divisor``floats and time resolution
     """
-    # Convert timing from strings to floats
-    columns = set(["Time", "TTime", "Duration", "ReqTime", "ReqDur"])
-    present_columns = list(columns.intersection(presentation_df.columns))
-    presentation_df[present_columns] = presentation_df[present_columns].astype(float)
+    convert_to_seconds = (
+        [convert_to_seconds]
+        if isinstance(convert_to_seconds, str)
+        else convert_to_seconds
+    )
+    df[convert_to_seconds] = df[convert_to_seconds].apply(
+        lambda x: x.astype(str).str.lower()
+    )
+    df[convert_to_seconds] = df[convert_to_seconds].replace("null", "nan")
+    df[convert_to_seconds] = df[convert_to_seconds].replace("", "nan")
+    df[convert_to_seconds] = df[convert_to_seconds].astype(float)
+    df[convert_to_seconds] = df[convert_to_seconds].apply(lambda x: x / divisor)
 
-    if convert_to_seconds:
-        presentation_df[present_columns] = presentation_df[present_columns].apply(
-            lambda x: x / 10000
-        )
-
-    return presentation_df
+    return df
 
 
 def load_presentation_log(
-    log_filepath: str | Path, convert_to_seconds: bool = False
+    log_filepath: str | Path, convert_to_seconds: list[str] = None
 ) -> pd.DataFrame:
     """
     Loads Presentation log file as a Pandas Dataframe.
@@ -112,10 +81,10 @@ def load_presentation_log(
     Parameters
     ----------
     log_filepath: :obj:`str` or :obj:`Path`
-        Absolute path to the Presentation log file (i.e text, log, excel files).
+        Absolute path to the Presentation log file (i.e text, log, Excel files).
 
-    convert_to_seconds: :obj:`bool`, default=False
-        Convert resolution of all time columns from 0.1ms to seconds.
+    convert_to_seconds: :obj:`list[str]` or :obj:`None`, default=None
+        Convert the time resolution of the specified columns from 0.1ms to seconds.
 
     Returns
     -------
@@ -123,18 +92,18 @@ def load_presentation_log(
         A Pandas dataframe of the data.
     """
     with open(log_filepath, "r") as f:
+        initial_columns_headers = ["Trial", "Event Type"]
         textlines = f.readlines()
-        deliminator = _determine_deliminator(textlines)
+        delimiter = _determine_delimiter(textlines, initial_columns_headers)
         content_indices = []
-
         cleaned_textlines = [line for line in textlines if line != "\n"]
         for indx, line in enumerate(cleaned_textlines):
             # Get the starting index of the data columns
-            if line.startswith(f"{deliminator}".join(PRESENTATION_COLUMNS)):
+            if line.startswith(f"{delimiter}".join(initial_columns_headers)):
                 content_indices.append(indx)
             # Get one more than the final index of the data colums
             # Note: the lines for the data contain a trial number
-            elif content_indices and not line.split(f"{deliminator}")[0].isdigit():
+            elif content_indices and not line.split(f"{delimiter}")[0].isdigit():
                 content_indices.append(indx)
                 break
 
@@ -143,8 +112,66 @@ def load_presentation_log(
             content_indices[1] if len(content_indices) > 1 else len(cleaned_textlines)
         )
 
-        data_textlines = cleaned_textlines[(start_indx + 1) : stop_indx]
+        text = "".join(cleaned_textlines[start_indx:stop_indx])
+        df = pd.read_csv(io.StringIO(text, newline=None), sep=delimiter)
 
-    df = _convert_textlines_to_df(data_textlines, deliminator, PRESENTATION_COLUMNS)
+    return (
+        df
+        if not convert_to_seconds
+        else _convert_time(df, convert_to_seconds, divisor=10000)
+    )
 
-    return _convert_time(df, convert_to_seconds)
+
+def load_eprime_log(
+    log_filepath: str | Path,
+    convert_to_seconds: list[str] = None,
+    drop_columns: list[str] = None,
+) -> pd.DataFrame:
+    """
+    Loads EPrime 3 log file as a Pandas Dataframe.
+
+    .. important::
+       When EPrime 3 file is exported to text, remove the checkmark from
+       the "Unicode" field. The type of text file the Edat file is exported
+       as is irrelevent.
+
+    Parameters
+    ----------
+    log_filepath: :obj:`str` or :obj:`Path`
+        Absolute path to the Presentation log file (i.e text, log, excel files).
+
+    convert_to_seconds: :obj:`list[str]` or :obj:`None`, default=None
+        Convert the time resolution of the specified columns from milliseconds to seconds.
+
+    drop_columns: :obj:`list[str]` or :obj:`None`, default=None
+        Remove specified columns from dataframe.
+
+    Returns
+    -------
+    pandas.Dataframe
+        A Pandas dataframe of the data.
+    """
+    with open(log_filepath, "r") as f:
+        initial_columns_headers = ["ExperimentName", "Subject"]
+        textlines = f.readlines()
+        delimiter = _determine_delimiter(textlines, initial_columns_headers)
+        cleaned_textlines = [line for line in textlines if line != "\n"]
+        for indx, line in enumerate(cleaned_textlines):
+            if line.startswith(f"{delimiter}".join(initial_columns_headers)):
+                start_indx = indx
+                break
+
+        text = "".join(cleaned_textlines[start_indx:])
+        df = pd.read_csv(io.StringIO(text, newline=None), sep=delimiter)
+
+        if drop_columns:
+            drop_columns = (
+                [drop_columns] if isinstance(drop_columns, str) else drop_columns
+            )
+            df = df.drop(drop_columns, axis=1)
+
+    return (
+        df
+        if not convert_to_seconds
+        else _convert_time(df, convert_to_seconds, divisor=1000)
+    )

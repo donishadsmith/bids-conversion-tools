@@ -106,6 +106,7 @@ def test_presentation_log_to_bids(tmp_dir, experimental_design):
             "trial_types": ["indoor"],
             "experimental_design": "block",
             "rest_block_code": "rest",
+            "convert_to_seconds": ["Time"],
         }
     else:
         expected_df = pd.DataFrame(
@@ -119,6 +120,7 @@ def test_presentation_log_to_bids(tmp_dir, experimental_design):
             "presentation_log_or_df": filename,
             "trial_types": ["incongruent", "neutral"],
             "experimental_design": "event",
+            "convert_to_seconds": ["Time"],
         }
 
     df = presentation_log_to_bids(**kwargs)

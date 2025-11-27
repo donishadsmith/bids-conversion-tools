@@ -1,6 +1,12 @@
 # Changelog
 
 Documentation of changes for each version of ``Nifti2Bids``.
+
+## [0.2.5] - 2025-11-27
+- Add Eprime 3 parser
+- Convert the `convert_to_seconds` from bool to a iterable
+- Add `convert_to_seconds` to the presentation to events function
+
 ## [0.2.4] - 2025-11-25
 - Add new function to convert presentation logs to bids event files
 - Simplify some function parameters

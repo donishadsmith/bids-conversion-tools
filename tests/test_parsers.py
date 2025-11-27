@@ -2,11 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from nifti2bids.parsers import load_presentation_log, PRESENTATION_COLUMNS
+from nifti2bids.parsers import load_presentation_log, load_eprime_log
+
+from ._constants import PRESENTATION_COLUMNS
 
 
 @pytest.fixture(autouse=False, scope="function")
-def create_logfile(tmp_dir):
+def create_presentation_logfile(tmp_dir):
     sample_log = [
         "Scenario - Flanker task using SPM event_run8.txt file.\n",
         "Logfile written - 09/24/2025 11:40:20\n",
@@ -26,6 +28,31 @@ def create_logfile(tmp_dir):
 
     yield dst_path
 
+    dst_path.unlink()
+
+
+@pytest.fixture(autouse=False, scope="function")
+def create_eprime_logfile(tmp_dir):
+    """Temp Eprime function to eventually create better representation"""
+    sample_log = [
+        "INTEGER\n",
+        "\n",
+        "ExperimentName\tSubject\tCode\tTime\tTTime\tUncertainty\tDuration\tUncertainty\tReqTime\tReqDur\tStim Type\tPair Index\n",
+        "\n",
+        "1\tPicture\tcrosshairF\t151281\t151235\t1\t78633\t1\t0\t79789\tother\t1\n",
+        "1\tPort Input\t54\t151495\t''\t2\n",
+        "\n",
+        "Picture\t53\t150385\tNULL\t2\n",
+    ]
+    dst_path = Path(tmp_dir.name) / "sample_log.txt"
+    with open(dst_path, "w") as f:
+        for line in sample_log:
+            f.writelines(line)
+
+    yield dst_path
+
+    dst_path.unlink()
+
 
 def test_load_presentation_log(create_logfile):
     """Test for ``load_presentation_log`` function."""
@@ -34,14 +61,34 @@ def test_load_presentation_log(create_logfile):
     assert len(df) == 2
     assert all(col in PRESENTATION_COLUMNS for col in df.columns)
     assert df["Event Type"].values.tolist() == ["Picture", "Port Input"]
+    assert df.loc[0, "Time"] == 151281
 
-    columns = ["Time", "TTime", "Duration", "ReqTime", "ReqDur"]
-    to_float = lambda num_list: [float(x) for x in num_list]
-    assert list(df.loc[0, columns].values) == to_float(
-        [151281, 151235, 78633, 0, 79789]
-    )
+    df = load_presentation_log(src_file, convert_to_seconds=["Time"])
+    assert df.loc[0, "Time"] == 15.1281
 
-    df = load_presentation_log(src_file, convert_to_seconds=True)
-    assert list(df.loc[0, columns].values) == to_float(
-        [15.1281, 15.1235, 7.8633, 0.0, 7.9789]
-    )
+
+def test_load_presentation_log(create_presentation_logfile):
+    """Test for ``load_presentation_log`` function."""
+    src_file = create_presentation_logfile
+    df = load_presentation_log(src_file)
+    assert len(df) == 2
+    assert all(col in PRESENTATION_COLUMNS for col in df.columns)
+    assert df["Event Type"].values.tolist() == ["Picture", "Port Input"]
+    assert df.loc[0, "Time"] == 151281
+
+    df = load_presentation_log(src_file, convert_to_seconds=["Time"])
+    assert df.loc[0, "Time"] == 15.1281
+
+
+def test_load_eprime_log(create_eprime_logfile):
+    """Test for ``load_eprime_log`` function."""
+    src_file = create_eprime_logfile
+    df = load_eprime_log(src_file)
+    assert len(df) == 3
+    assert df.loc[0, "Time"] == 151281
+
+    df = load_eprime_log(src_file, convert_to_seconds=["Time"])
+    assert df.loc[0, "Time"] == 151.281
+
+    df = load_eprime_log(src_file, drop_columns=["Time"])
+    assert not "Time" in df.columns

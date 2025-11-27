@@ -20,4 +20,4 @@ presentation software such as Presentation
 simulate -- Simulate a basic NIfTI image for testing purposes
 """
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"

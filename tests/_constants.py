@@ -1,3 +1,18 @@
+PRESENTATION_COLUMNS = [
+    "Trial",
+    "Event Type",
+    "Code",
+    "Time",
+    "TTime",
+    "Uncertainty",
+    "Duration",
+    "Uncertainty.1",
+    "ReqTime",
+    "ReqDur",
+    "Stim Type",
+    "Pair Index",
+]
+
 BLOCK_DATA = [
     [
         "Trial",

@@ -197,6 +197,7 @@ def create_participant_tsv(
 
 def presentation_log_to_bids(
     presentation_log_or_df: str | Path | pd.DataFrame,
+    convert_to_seconds: Optional[list[str]],
     trial_types: Optional[list[str]],
     experimental_design: Literal["block", "event"],
     rest_block_code: Optional[list[str]] = None,
@@ -210,6 +211,11 @@ def presentation_log_to_bids(
     presentation_log_or_df: :obj:`str`, :obj:`Path`, :obj:`pd.DataFrame`
         The presentation log as a file path or the presentation DataFrame
         returned by :code:`nifti2bids.parsers.load_presentation_log`.
+
+    convert_to_seconds: :obj:`list[str]` or :obj:`None`, default=None
+        Convert the time resolution of the specified columns from 0.1ms to seconds.
+
+        .. note:: Recommend time resolution of the "Time" column to be converted.
 
     trial_types: :obj:`list[str]` or :obj:`None`
         The names of the trial types (i.e "congruentleft", "seen").
@@ -253,12 +259,12 @@ def presentation_log_to_bids(
 
     if not isinstance(presentation_log_or_df, pd.DataFrame):
         presentation_df = load_presentation_log(
-            presentation_log_or_df, convert_to_seconds=True
+            presentation_log_or_df, convert_to_seconds=convert_to_seconds
         )
     else:
-        presentation_df = presentation_log_or_df
-        if all(isinstance(val, int) for val in presentation_df["Time"]):
-            presentation_df = _convert_time(presentation_df, convert_to_seconds=True)
+        presentation_df = _convert_time(
+            presentation_df, convert_to_seconds=convert_to_seconds, divisor=10000
+        )
 
     if experimental_design == "block":
         rest_block_indxs = presentation_df[
