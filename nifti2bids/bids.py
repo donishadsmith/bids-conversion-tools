@@ -202,6 +202,7 @@ def presentation_log_to_bids(
     experimental_design: Literal["block", "event"],
     rest_block_code: Optional[list[str]] = None,
     include_response: bool = False,
+    initial_column_headers: tuple[str] = ("Trial", "Event Type"),
 ) -> pd.DataFrame:
     """
     Creates BIDs compliant events dataframe from Presentation log or dataframe.
@@ -240,7 +241,11 @@ def presentation_log_to_bids(
 
     include_response: :obj:`bool`, default=False
         Includes a response column. Only used when
-        ``experiment_design`` is "evemt".
+        ``experiment_design`` is "event".
+
+    initial_column_headers: :obj:`tuple[str]`, default=("Trial", "Event Type")
+        The initial column headers for data. Only used when
+        ``presentation_log_or_df`` is a file path.
 
     Returns
     -------
@@ -259,7 +264,9 @@ def presentation_log_to_bids(
 
     if not isinstance(presentation_log_or_df, pd.DataFrame):
         presentation_df = load_presentation_log(
-            presentation_log_or_df, convert_to_seconds=convert_to_seconds
+            presentation_log_or_df,
+            convert_to_seconds=convert_to_seconds,
+            initial_column_headers=tuple(initial_column_headers),
         )
     else:
         presentation_df = _convert_time(

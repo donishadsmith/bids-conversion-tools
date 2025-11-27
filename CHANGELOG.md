@@ -2,6 +2,9 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.2.6] - 2025-11-27
+- Add new parameter for parser functions
+
 ## [0.2.5] - 2025-11-27
 - Add Eprime 3 parser
 - Convert the `convert_to_seconds` from bool to a iterable

@@ -73,7 +73,9 @@ def _convert_time(
 
 
 def load_presentation_log(
-    log_filepath: str | Path, convert_to_seconds: list[str] = None
+    log_filepath: str | Path,
+    convert_to_seconds: list[str] = None,
+    initial_column_headers: tuple[str] = ("Trial", "Event Type"),
 ) -> pd.DataFrame:
     """
     Loads Presentation log file as a Pandas Dataframe.
@@ -86,20 +88,23 @@ def load_presentation_log(
     convert_to_seconds: :obj:`list[str]` or :obj:`None`, default=None
         Convert the time resolution of the specified columns from 0.1ms to seconds.
 
+    initial_column_headers: :obj:`tuple[str]`, default=("Trial", "Event Type")
+        The initial column headers for data.
+
     Returns
     -------
     pandas.Dataframe
         A Pandas dataframe of the data.
     """
     with open(log_filepath, "r") as f:
-        initial_columns_headers = ["Trial", "Event Type"]
+        initial_column_headers = tuple(initial_column_headers)
         textlines = f.readlines()
-        delimiter = _determine_delimiter(textlines, initial_columns_headers)
+        delimiter = _determine_delimiter(textlines, initial_column_headers)
         content_indices = []
         cleaned_textlines = [line for line in textlines if line != "\n"]
         for indx, line in enumerate(cleaned_textlines):
             # Get the starting index of the data columns
-            if line.startswith(f"{delimiter}".join(initial_columns_headers)):
+            if line.startswith(f"{delimiter}".join(initial_column_headers)):
                 content_indices.append(indx)
             # Get one more than the final index of the data colums
             # Note: the lines for the data contain a trial number
@@ -126,6 +131,7 @@ def load_eprime_log(
     log_filepath: str | Path,
     convert_to_seconds: list[str] = None,
     drop_columns: list[str] = None,
+    initial_column_headers: tuple[str] = ("ExperimentName", "Subject"),
 ) -> pd.DataFrame:
     """
     Loads EPrime 3 log file as a Pandas Dataframe.
@@ -146,18 +152,21 @@ def load_eprime_log(
     drop_columns: :obj:`list[str]` or :obj:`None`, default=None
         Remove specified columns from dataframe.
 
+    initial_column_headers: :obj:`tuple[str]`, default=("ExperimentName", "Subject")
+        The initial column headers for data.
+
     Returns
     -------
     pandas.Dataframe
         A Pandas dataframe of the data.
     """
     with open(log_filepath, "r") as f:
-        initial_columns_headers = ["ExperimentName", "Subject"]
+        initial_column_headers = tuple(initial_column_headers)
         textlines = f.readlines()
-        delimiter = _determine_delimiter(textlines, initial_columns_headers)
+        delimiter = _determine_delimiter(textlines, initial_column_headers)
         cleaned_textlines = [line for line in textlines if line != "\n"]
         for indx, line in enumerate(cleaned_textlines):
-            if line.startswith(f"{delimiter}".join(initial_columns_headers)):
+            if line.startswith(f"{delimiter}".join(initial_column_headers)):
                 start_indx = indx
                 break
 
