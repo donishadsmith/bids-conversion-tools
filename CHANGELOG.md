@@ -2,6 +2,9 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.2.8] - 2025-11-28
+- Added assertions
+
 ## [0.2.7] - 2025-11-28
 - Add function to convert edat3 to tsv
 

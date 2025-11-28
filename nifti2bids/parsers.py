@@ -91,6 +91,10 @@ def convert_edat3_to_tsv(
         Absolute path to the output TSV file that the edat3 file will be converted to.
         If None, the TSV file will be saved in the same folder as the edat3 file.
     """
+    assert (
+        Path(edat_path).suffix == ".edat3"
+    ), "`edat_path` must be a file with the '.edat3' extension."
+
     if sys.platform != "win32":
         raise OSError("Function only works for Windows platforms.")
 
@@ -142,6 +146,10 @@ def load_eprime_log(
     pandas.Dataframe
         A Pandas dataframe of the data.
     """
+    assert (
+        not Path(log_filepath).suffix == ".edat3"
+    ), "`log_filepath` cannot be a file with the '.edat3' extension."
+
     with open(log_filepath, "r") as f:
         initial_column_headers = tuple(initial_column_headers)
         textlines = f.readlines()
