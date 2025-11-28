@@ -1,7 +1,10 @@
-import csv, io
+import csv, io, tempfile, subprocess, sys
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
+
+from ._constants import EDATAAID_PATH, EDATAAID_CONTROL_FILE
 
 
 def _determine_delimiter(
@@ -72,6 +75,99 @@ def _convert_time(
     return df
 
 
+def convert_edat3_to_tsv(
+    edat_path: str | Path, dst_path: Optional[str | Path] = None
+) -> None:
+    """
+    Converts a file with an "edat3" extension to a TSV file.
+
+    .. important::
+       - Only works with Windows platforms with Eprime 3 installed.
+
+    edat_path: :obj:`str` or :obj:`Path`
+        Absolute path to the Eprime file with an "edat3" extension.
+
+    dst_path: :obj:`str` or :obj:`Path`, default=None
+        Absolute path to the output TSV file that the edat3 file will be converted to.
+        If None, the TSV file will be saved in the same folder as the edat3 file.
+    """
+    if sys.platform != "win32":
+        raise OSError("Function only works for Windows platforms.")
+
+    if not Path(EDATAAID_PATH).exists:
+        raise FileNotFoundError(
+            f"EPrime 3 must be installed to use the following program {EDATAAID_PATH}."
+        )
+
+    dst_path = dst_path if dst_path else str(edat_path).replace(".edat3", ".tsv")
+    control_file = EDATAAID_CONTROL_FILE.format(edat_path=edat_path, dst_path=dst_path)
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as tmpfile:
+        tmpfile.write(control_file)
+
+    subprocess.run([EDATAAID_PATH, "/e", "/f", tmpfile.name])
+
+    Path(tmpfile.name).unlink()
+
+
+def load_eprime_log(
+    log_filepath: str | Path,
+    convert_to_seconds: list[str] = None,
+    drop_columns: list[str] = None,
+    initial_column_headers: tuple[str] = ("ExperimentName", "Subject"),
+) -> pd.DataFrame:
+    """
+    Loads EPrime 3 log file as a Pandas Dataframe.
+
+    .. important::
+       If the log file extension is "edat3", use :func:`nifti2bids.parsers.convert_edat3_to_tsv`
+       to convert it to text form. If exporting manually, remove the checkmark from
+       the "Unicode" field. The type of text file the edat file is exported as is irrelevent.
+
+    Parameters
+    ----------
+    log_filepath: :obj:`str` or :obj:`Path`
+        Absolute path to the Presentation log file (i.e text, log, excel files).
+
+    convert_to_seconds: :obj:`list[str]` or :obj:`None`, default=None
+        Convert the time resolution of the specified columns from milliseconds to seconds.
+
+    drop_columns: :obj:`list[str]` or :obj:`None`, default=None
+        Remove specified columns from dataframe.
+
+    initial_column_headers: :obj:`tuple[str]`, default=("ExperimentName", "Subject")
+        The initial column headers for data.
+
+    Returns
+    -------
+    pandas.Dataframe
+        A Pandas dataframe of the data.
+    """
+    with open(log_filepath, "r") as f:
+        initial_column_headers = tuple(initial_column_headers)
+        textlines = f.readlines()
+        delimiter = _determine_delimiter(textlines, initial_column_headers)
+        cleaned_textlines = [line for line in textlines if line != "\n"]
+        for indx, line in enumerate(cleaned_textlines):
+            if line.startswith(f"{delimiter}".join(initial_column_headers)):
+                start_indx = indx
+                break
+
+        text = "".join(cleaned_textlines[start_indx:])
+        df = pd.read_csv(io.StringIO(text, newline=None), sep=delimiter)
+
+        if drop_columns:
+            drop_columns = (
+                [drop_columns] if isinstance(drop_columns, str) else drop_columns
+            )
+            df = df.drop(drop_columns, axis=1)
+
+    return (
+        df
+        if not convert_to_seconds
+        else _convert_time(df, convert_to_seconds, divisor=1000)
+    )
+
+
 def load_presentation_log(
     log_filepath: str | Path,
     convert_to_seconds: list[str] = None,
@@ -124,63 +220,4 @@ def load_presentation_log(
         df
         if not convert_to_seconds
         else _convert_time(df, convert_to_seconds, divisor=10000)
-    )
-
-
-def load_eprime_log(
-    log_filepath: str | Path,
-    convert_to_seconds: list[str] = None,
-    drop_columns: list[str] = None,
-    initial_column_headers: tuple[str] = ("ExperimentName", "Subject"),
-) -> pd.DataFrame:
-    """
-    Loads EPrime 3 log file as a Pandas Dataframe.
-
-    .. important::
-       When EPrime 3 file is exported to text, remove the checkmark from
-       the "Unicode" field. The type of text file the Edat file is exported
-       as is irrelevent.
-
-    Parameters
-    ----------
-    log_filepath: :obj:`str` or :obj:`Path`
-        Absolute path to the Presentation log file (i.e text, log, excel files).
-
-    convert_to_seconds: :obj:`list[str]` or :obj:`None`, default=None
-        Convert the time resolution of the specified columns from milliseconds to seconds.
-
-    drop_columns: :obj:`list[str]` or :obj:`None`, default=None
-        Remove specified columns from dataframe.
-
-    initial_column_headers: :obj:`tuple[str]`, default=("ExperimentName", "Subject")
-        The initial column headers for data.
-
-    Returns
-    -------
-    pandas.Dataframe
-        A Pandas dataframe of the data.
-    """
-    with open(log_filepath, "r") as f:
-        initial_column_headers = tuple(initial_column_headers)
-        textlines = f.readlines()
-        delimiter = _determine_delimiter(textlines, initial_column_headers)
-        cleaned_textlines = [line for line in textlines if line != "\n"]
-        for indx, line in enumerate(cleaned_textlines):
-            if line.startswith(f"{delimiter}".join(initial_column_headers)):
-                start_indx = indx
-                break
-
-        text = "".join(cleaned_textlines[start_indx:])
-        df = pd.read_csv(io.StringIO(text, newline=None), sep=delimiter)
-
-        if drop_columns:
-            drop_columns = (
-                [drop_columns] if isinstance(drop_columns, str) else drop_columns
-            )
-            df = df.drop(drop_columns, axis=1)
-
-    return (
-        df
-        if not convert_to_seconds
-        else _convert_time(df, convert_to_seconds, divisor=1000)
     )

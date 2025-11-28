@@ -237,7 +237,7 @@ def presentation_log_to_bids(
 
     rest_block_code: :obj:`str`, default=None
         The name of the code for the rest block. Only used
-        when ``experiment_design`` is "rest".
+        when ``experiment_design`` is "block".
 
     include_response: :obj:`bool`, default=False
         Includes a response column. Only used when
@@ -257,10 +257,10 @@ def presentation_log_to_bids(
     assert experimental_design in [
         "event",
         "block",
-    ], "Valid inputs for ``experimental_design`` are 'event' and 'block'"
+    ], "Valid inputs for ``experimental_design`` are 'event' and 'block'."
     assert not (
         experimental_design == "block" and rest_block_code is None
-    ), "``rest_block_code` cannot be None when ``experimental_design`` is 'block'"
+    ), "``rest_block_code` cannot be None when ``experimental_design`` is 'block'."
 
     if not isinstance(presentation_log_or_df, pd.DataFrame):
         presentation_df = load_presentation_log(
@@ -268,10 +268,12 @@ def presentation_log_to_bids(
             convert_to_seconds=convert_to_seconds,
             initial_column_headers=tuple(initial_column_headers),
         )
-    else:
+    elif convert_to_seconds:
         presentation_df = _convert_time(
             presentation_df, convert_to_seconds=convert_to_seconds, divisor=10000
         )
+    else:
+        presentation_df = presentation_log_or_df
 
     if experimental_design == "block":
         rest_block_indxs = presentation_df[

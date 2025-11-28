@@ -89,4 +89,6 @@ presentation software.
    :nosignatures:
    :toctree: generated/
 
+   convert_edat3_to_tsv
+   load_eprime_log
    load_presentation_log
