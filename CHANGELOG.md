@@ -2,6 +2,9 @@
 
 Documentation of changes for each version of ``Nifti2Bids``.
 
+## [0.2.9] - 2025-11-28
+- Change `get_date_from_filename` to `parse_date_from_path`
+
 ## [0.2.8] - 2025-11-28
 - Added assertions
 

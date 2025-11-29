@@ -70,7 +70,7 @@ from NIfTIs.
    is_3d_img
    get_scanner_info
    is_valid_date
-   get_date_from_filename
+   parse_date_from_path
    get_entity_value
    infer_task_from_image
    get_recon_matrix_pe
@@ -80,7 +80,7 @@ from NIfTIs.
 :mod:`nifti2bids.parsers`
 --------------------------
 Module containing functions to parse logs from stimulus
-presentation software.
+Presentation and EPrime 3 software.
 
 .. currentmodule:: nifti2bids.parsers
 

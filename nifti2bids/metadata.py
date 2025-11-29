@@ -805,16 +805,14 @@ def is_valid_date(date_str: str, date_fmt: str) -> bool:
         return False
 
 
-def get_date_from_filename(filename: str | Path, date_fmt: str) -> str | None:
+def parse_date_from_path(path: str | Path, date_fmt: str) -> str | None:
     """
-    Get date from filename.
-
-    Extracts the date from the name a file.
+    Get date from the stem of a path.
 
     Parameters
     ----------
-    filename: :obj:`str` or :obj:`Path`
-        The absolute path or name of file.
+    path: :obj:`str` or :obj:`Path`
+        The absolute path or name of file or folder.
 
     date_fmt: :obj:`str`
         The expected format of the date.
@@ -827,13 +825,18 @@ def get_date_from_filename(filename: str | Path, date_fmt: str) -> str | None:
 
     Example
     -------
-    >>> from nifti2bids.metadata import get_date_from_filename
-    >>> get_date_from_filename("101_240820_mprage_32chan.nii", "%y%m%d")
+    >>> from nifti2bids.metadata import parse_date_from_path
+    >>> date_str = parse_date_from_path("101_240820_mprage_32chan.nii", "%y%m%d")
+    >>> print(date_str)
+        "240820"
+    >>> folder = r"Users/users/Documents/101_240820"
+    >>> date_str = parse_date_from_path(folder, "%y%m%d")
+    >>> print(date_str)
         "240820"
     """
     split_pattern = "|".join(map(re.escape, ["_", "-", " "]))
 
-    basename = Path(filename).name
+    basename = Path(path).name
     split_basename = re.split(split_pattern, basename)
 
     date_str = None

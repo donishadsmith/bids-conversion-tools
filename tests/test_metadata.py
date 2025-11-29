@@ -332,13 +332,16 @@ def test_get_scanner_info(nifti_img_and_path):
     assert model_name == "Ingenia Elition X 5.7.1"
 
 
-def test_get_date_from_filename():
-    """Test for ``get_date_from_filename``."""
-    date = bids_meta.get_date_from_filename("101_240820_mprage_32chan.nii", "%y%m%d")
+def test_parse_date_from_path():
+    """Test for ``parse_date_from_path``."""
+    date = bids_meta.parse_date_from_path("101_240820_mprage_32chan.nii", "%y%m%d")
     assert date == "240820"
 
-    date = bids_meta.get_date_from_filename("101_mprage_32chan.nii", "%y%m%d")
+    date = bids_meta.parse_date_from_path("101_mprage_32chan.nii", "%y%m%d")
     assert not date
+
+    date = bids_meta.parse_date_from_path(r"Users/users/Documents/101_240820", "%y%m%d")
+    assert date == "240820"
 
 
 def test_get_entity_value():
